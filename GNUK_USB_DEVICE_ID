@@ -1,0 +1,4 @@
+# VID:PID	bcdDev	Product_STRING	Vendor_STRING
+0000:0000	0100	Test Emulation	Testing Corp
+6666:8888	0100	Test Device	Testing Corp
+##########<TAB>	##<TAB>	##########<TAB>	#################
