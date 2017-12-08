@@ -30,11 +30,8 @@
 #include "config.h"
 
 #include "sys.h"
-#include "adc.h"
-#include "gnuk.h"
 #include "usb_lld.h"
 #include "usb-cdc.h"
-#include "random.h"
 #ifdef GNU_LINUX_EMULATION
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,6 +41,22 @@
 #include "mcu/stm32.h"
 #include "mcu/stm32f103.h"
 #endif
+
+/* shit from gnuk.h */
+extern const uint8_t gnuk_string_serial[];
+
+#define LED_ONESHOT		  1
+#define LED_TWOSHOTS		  2
+#define LED_SHOW_STATUS		  4
+#define LED_FATAL		  8
+#define LED_SYNC	         16
+#define LED_GNUK_EXEC		 32
+#define LED_START_COMMAND	 64
+#define LED_FINISH_COMMAND	128
+#define LED_OFF	 LED_FINISH_COMMAND
+
+extern uint8_t _regnual_start, __heap_end__[];
+
 
 /*
  * main thread does 1-bit LED display output
@@ -80,10 +93,10 @@ device_initialize_once (void)
 
 	  nibble = (b >> 4);
 	  nibble += (nibble >= 10 ? ('A' - 10) : '0');
-	  flash_put_data_internal (&p[i*4], nibble);
+	  flash_program_halfword ((uintptr_t)&p[i*4], nibble);
 	  nibble = (b & 0x0f);
 	  nibble += (nibble >= 10 ? ('A' - 10) : '0');
-	  flash_put_data_internal (&p[i*4+2], nibble);
+	  flash_program_halfword ((uintptr_t)&p[i*4+2], nibble);
 	}
     }
 }
@@ -145,39 +158,6 @@ emit_led (uint32_t on_time, uint32_t off_time)
   chopstx_poll (&off_time, 1, led_event_poll);
 }
 
-static void
-display_status_code (void)
-{
-  enum ccid_state ccid_state = *ccid_state_p;
-  uint32_t usec;
-
-  if (ccid_state == CCID_STATE_START)
-    emit_led (LED_TIMEOUT_ONE, LED_TIMEOUT_STOP);
-  else
-    /* OpenPGP card thread is running */
-    {
-      emit_led ((auth_status & AC_ADMIN_AUTHORIZED)?
-		LED_TIMEOUT_ONE : LED_TIMEOUT_ZERO, LED_TIMEOUT_INTERVAL);
-      emit_led ((auth_status & AC_OTHER_AUTHORIZED)?
-		LED_TIMEOUT_ONE : LED_TIMEOUT_ZERO, LED_TIMEOUT_INTERVAL);
-      emit_led ((auth_status & AC_PSO_CDS_AUTHORIZED)?
-		LED_TIMEOUT_ONE : LED_TIMEOUT_ZERO, LED_TIMEOUT_INTERVAL);
-
-      if (ccid_state == CCID_STATE_WAIT)
-	{
-	  usec = LED_TIMEOUT_STOP * 2;
-	  chopstx_poll (&usec, 1, led_event_poll);
-	}
-      else
-	{
-	  usec = LED_TIMEOUT_INTERVAL;
-	  chopstx_poll (&usec, 1, led_event_poll);
-	  emit_led (ccid_state == CCID_STATE_RECEIVE?
-		    LED_TIMEOUT_ONE : LED_TIMEOUT_ZERO, LED_TIMEOUT_STOP);
-	}
-    }
-}
-
 void
 led_blink (int spec)
 {
@@ -220,9 +200,6 @@ calculate_regnual_entry_address (const uint8_t *addr)
 
 extern void *ccid_thread (void *arg);
 
-static void gnuk_malloc_init (void);
-
-
 extern uint32_t bDeviceState;
 
 /*
@@ -242,8 +219,6 @@ main (int argc, const char *argv[])
   chopstx_t ccid_thd;
 
   chopstx_conf_idle (1);
-
-  gnuk_malloc_init ();
 
 #ifdef GNU_LINUX_EMULATION
 #define FLASH_IMAGE_NAME ".gnuk-flash-image"
@@ -320,11 +295,7 @@ main (int argc, const char *argv[])
   device_initialize_once ();
 #endif
 
-  adc_init ();
-
   eventflag_init (&led_event);
-
-  random_init ();
 
 #ifdef DEBUG
   stdout_init ();
@@ -332,13 +303,6 @@ main (int argc, const char *argv[])
 
   ccid_thd = chopstx_create (PRIO_CCID, STACK_ADDR_CCID, STACK_SIZE_CCID,
 			     ccid_thread, NULL);
-
-#ifdef PINPAD_CIR_SUPPORT
-  cir_init ();
-#endif
-#ifdef PINPAD_DND_SUPPORT
-  msc_init ();
-#endif
 
   chopstx_setpriority (PRIO_MAIN);
 
@@ -384,7 +348,6 @@ main (int argc, const char *argv[])
     }
 
  exec:
-  random_fini ();
 
   set_led (1);
   usb_lld_shutdown ();
@@ -443,190 +406,4 @@ fatal (uint8_t code)
   eventflag_signal (&led_event, LED_FATAL);
   _write ("fatal\r\n", 7);
   for (;;);
-}
-
-/*
- * Malloc for Gnuk.
- *
- * Each memory chunk has header with size information.
- * The size of chunk is at least 16.
- *
- * Free memory is managed by FREE_LIST.
- *
- * When it is managed in FREE_LIST, three pointers, ->NEXT, ->PREV,
- * and ->NEIGHBOR is used.  NEXT and PREV is to implement doubly
- * linked list.  NEIGHBOR is to link adjacent memory chunk to be
- * reclaimed to system.
- */
-
-#ifdef GNU_LINUX_EMULATION
-#define HEAP_SIZE (32*1024)
-uint8_t __heap_base__[HEAP_SIZE];
-
-#define HEAP_START __heap_base__
-#define HEAP_END (__heap_base__ + HEAP_SIZE)
-#define HEAP_ALIGNMENT 32
-#else
-extern uint8_t __heap_base__[];
-extern uint8_t __heap_end__[];
-
-#define HEAP_START __heap_base__
-#define HEAP_END (__heap_end__)
-#define HEAP_ALIGNMENT 16
-#define HEAP_SIZE ((uintptr_t)__heap_end__ -  (uintptr_t)__heap_base__)
-#endif
-
-#define HEAP_ALIGN(n) (((n) + HEAP_ALIGNMENT - 1) & ~(HEAP_ALIGNMENT - 1))
-
-static uint8_t *heap_p;
-static chopstx_mutex_t malloc_mtx;
-
-struct mem_head {
-  uintptr_t size;
-  /**/
-  struct mem_head *next, *prev;	/* free list chain */
-  struct mem_head *neighbor;	/* backlink to neighbor */
-};
-
-#define MEM_HEAD_IS_CORRUPT(x) \
-    ((x)->size != HEAP_ALIGN((x)->size) || (x)->size > HEAP_SIZE)
-#define MEM_HEAD_CHECK(x) if (MEM_HEAD_IS_CORRUPT(x)) fatal (FATAL_HEAP)
-
-static struct mem_head *free_list;
-
-static void
-gnuk_malloc_init (void)
-{
-  chopstx_mutex_init (&malloc_mtx);
-  heap_p = HEAP_START;
-  free_list = NULL;
-}
-
-static void *
-sbrk (size_t size)
-{
-  void *p = (void *)heap_p;
-
-  if ((size_t)(HEAP_END - heap_p) < size)
-    return NULL;
-
-  heap_p += size;
-  return p;
-}
-
-static void
-remove_from_free_list (struct mem_head *m)
-{
-  if (m->prev)
-    m->prev->next = m->next;
-  else
-    free_list = m->next;
-  if (m->next)
-    m->next->prev = m->prev;
-}
-
-
-void *
-gnuk_malloc (size_t size)
-{
-  struct mem_head *m;
-  struct mem_head *m0;
-
-  size = HEAP_ALIGN (size + sizeof (uintptr_t));
-
-  chopstx_mutex_lock (&malloc_mtx);
-  DEBUG_INFO ("malloc: ");
-  DEBUG_SHORT (size);
-  m = free_list;
-
-  while (1)
-    {
-      if (m == NULL)
-	{
-	  m = (struct mem_head *)sbrk (size);
-	  if (m)
-	    m->size = size;
-	  break;
-	}
-      MEM_HEAD_CHECK (m);
-      if (m->size == size)
-	{
-	  remove_from_free_list (m);
-	  m0 = free_list;
-	  while (m0)
-	    if (m0->neighbor == m)
-	      m0->neighbor = NULL;
-	    else
-	      m0 = m0->next;
-	  break;
-	}
-
-      m = m->next;
-    }
-
-  chopstx_mutex_unlock (&malloc_mtx);
-  if (m == NULL)
-    {
-      DEBUG_WORD (0);
-      return m;
-    }
-  else
-    {
-      DEBUG_WORD ((uintptr_t)m + sizeof (uintptr_t));
-      return (void *)m + sizeof (uintptr_t);
-    }
-}
-
-
-void
-gnuk_free (void *p)
-{
-  struct mem_head *m = (struct mem_head *)((void *)p - sizeof (uintptr_t));
-  struct mem_head *m0;
-
-  if (p == NULL)
-    return;
-
-  chopstx_mutex_lock (&malloc_mtx);
-  m0 = free_list;
-  DEBUG_INFO ("free: ");
-  DEBUG_SHORT (m->size);
-  DEBUG_WORD ((uintptr_t)p);
-
-  MEM_HEAD_CHECK (m);
-  m->neighbor = NULL;
-  while (m0)
-    {
-      MEM_HEAD_CHECK (m0);
-      if ((void *)m + m->size == (void *)m0)
-	m0->neighbor = m;
-      else if ((void *)m0 + m0->size == (void *)m)
-	m->neighbor = m0;
-
-      m0 = m0->next;
-    }
-
-  if ((void *)m + m->size == heap_p)
-    {
-      struct mem_head *mn = m->neighbor;
-
-      heap_p -= m->size;
-      while (mn)
-	{
-	  MEM_HEAD_CHECK (mn);
-	  heap_p -= mn->size;
-	  remove_from_free_list (mn);
-	  mn = mn->neighbor;
-	}
-    }
-  else
-    {
-      m->next = free_list;
-      m->prev = NULL;
-      if (free_list)
-	free_list->prev = m;
-      free_list = m;
-    }
-
-  chopstx_mutex_unlock (&malloc_mtx);
 }

@@ -5,7 +5,7 @@ PROJECT = stm32test
 
 CHOPSTX = ../chopstx
 
-CSRC = main.c \
+CSRC = main.c crc32.c \
 	usb_desc.c usb_ctrl.c \
 	usb-ccid.c
 
