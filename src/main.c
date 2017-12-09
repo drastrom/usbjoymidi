@@ -331,7 +331,7 @@ main (int argc, const char *argv[])
 	  emit_led (50*1000, LED_TIMEOUT_STOP);
 	  break;
 	case LED_SHOW_STATUS:
-	  display_status_code ();
+	  /*display_status_code ();*/
 	  break;
 	case LED_FATAL:
 	  display_fatal_code ();
