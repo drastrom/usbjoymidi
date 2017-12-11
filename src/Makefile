@@ -7,7 +7,7 @@ CHOPSTX = ../chopstx
 
 CSRC = main.c crc32.c \
 	usb_desc.c usb_ctrl.c \
-	usb-ccid.c
+	usb-thread.c
 
 INCDIR =
 

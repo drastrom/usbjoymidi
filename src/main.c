@@ -192,13 +192,13 @@ calculate_regnual_entry_address (const uint8_t *addr)
 #define STACK_MAIN
 #define STACK_PROCESS_1
 #include "stack-def.h"
-#define STACK_ADDR_CCID ((uintptr_t)process1_base)
-#define STACK_SIZE_CCID (sizeof process1_base)
+#define STACK_ADDR_USB ((uintptr_t)process1_base)
+#define STACK_SIZE_USB (sizeof process1_base)
 
-#define PRIO_CCID 3
+#define PRIO_USB 3
 #define PRIO_MAIN 5
 
-extern void *ccid_thread (void *arg);
+extern void *usb_thread (void *arg);
 
 extern uint32_t bDeviceState;
 
@@ -216,7 +216,7 @@ main (int argc, const char *argv[])
 #ifdef FLASH_UPGRADE_SUPPORT
   uintptr_t entry;
 #endif
-  chopstx_t ccid_thd;
+  chopstx_t usb_thd;
 
   chopstx_conf_idle (1);
 
@@ -301,8 +301,8 @@ main (int argc, const char *argv[])
   stdout_init ();
 #endif
 
-  ccid_thd = chopstx_create (PRIO_CCID, STACK_ADDR_CCID, STACK_SIZE_CCID,
-			     ccid_thread, NULL);
+  usb_thd = chopstx_create (PRIO_USB, STACK_ADDR_USB, STACK_SIZE_USB,
+			     usb_thread, NULL);
 
   chopstx_setpriority (PRIO_MAIN);
 
@@ -353,7 +353,7 @@ main (int argc, const char *argv[])
   usb_lld_shutdown ();
 
   /* Finish application.  */
-  chopstx_join (ccid_thd, NULL);
+  chopstx_join (usb_thd, NULL);
 
 #ifdef FLASH_UPGRADE_SUPPORT
   /* Set vector */

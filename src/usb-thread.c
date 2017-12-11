@@ -1,5 +1,5 @@
 /*
- * usb-ccid.c -- USB CCID protocol handling
+ * usb-thread.c -- USB protocol handling
  *
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
  *               Free Software Initiative of Japan
@@ -79,9 +79,7 @@ usb_tx_done (uint8_t ep_num, uint16_t len)
 #endif
 }
 
-extern void *openpgp_card_thread (void *arg);
-
-#define USB_CCID_TIMEOUT (1950*1000)
+#define USB_TIMEOUT (1950*1000)
 
 extern uint32_t bDeviceState;
 extern void usb_device_reset (struct usb_dev *dev);
@@ -206,13 +204,13 @@ usb_event_handle (struct usb_dev *dev)
 
 
 static chopstx_intr_t interrupt;
-static struct chx_poll_head *const ccid_poll[] = {
+static struct chx_poll_head *const usb_poll[] = {
   (struct chx_poll_head *const)&interrupt
 };
-#define CCID_POLL_NUM (sizeof (ccid_poll)/sizeof (struct chx_poll_head *))
+#define USB_POLL_NUM (sizeof (usb_poll)/sizeof (struct chx_poll_head *))
 
 void *
-ccid_thread (void *arg)
+usb_thread (void *arg)
 {
   uint32_t timeout;
   struct usb_dev dev;
@@ -225,7 +223,7 @@ ccid_thread (void *arg)
   usb_event_handle (&dev);	/* For old SYS < 3.0 */
 
  reset:
-  timeout = USB_CCID_TIMEOUT;
+  timeout = USB_TIMEOUT;
   while (1)
     {
       if (bDeviceState == USB_DEVICE_STATE_CONFIGURED)
@@ -233,7 +231,7 @@ ccid_thread (void *arg)
       else
 	timeout_p = NULL;
 
-      chopstx_poll (timeout_p, CCID_POLL_NUM, ccid_poll);
+      chopstx_poll (timeout_p, USB_POLL_NUM, usb_poll);
 
       if (interrupt.ready)
 	{
@@ -249,7 +247,7 @@ ccid_thread (void *arg)
 	  goto reset;
 	}
 
-      timeout = USB_CCID_TIMEOUT;
+      timeout = USB_TIMEOUT;
     }
 
   /* Loading reGNUal.  */
