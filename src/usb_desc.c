@@ -38,7 +38,7 @@ uint8_t device_desc[] = {
 #define VCOM_TOTAL_LENGTH   0
 #endif
 
-#define W_TOTAL_LENGTH (VCOM_TOTAL_LENGTH)
+#define W_TOTAL_LENGTH (9+VCOM_TOTAL_LENGTH)
 
 
 /* Configuation Descriptor */
