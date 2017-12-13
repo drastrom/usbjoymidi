@@ -202,6 +202,8 @@ extern void *usb_thread (void *arg);
 
 extern uint32_t bDeviceState;
 
+extern void timer_init(void);
+
 /*
  * Entry point.
  */
@@ -300,6 +302,8 @@ main (int argc, const char *argv[])
 #ifdef DEBUG
   stdout_init ();
 #endif
+
+  timer_init();
 
   usb_thd = chopstx_create (PRIO_USB, STACK_ADDR_USB, STACK_SIZE_USB,
 			     usb_thread, NULL);
