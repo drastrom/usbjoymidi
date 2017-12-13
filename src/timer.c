@@ -9,6 +9,7 @@
 #include "mcu/stm32f103.h"
 
 extern void _write (const char *s, int len);
+extern void led_blink(int);
 
 #define STACK_PROCESS_6
 #include "stack-def.h"
@@ -33,9 +34,14 @@ tim_main (void *arg)
 	chopstx_intr_t interrupt;
 
 	(void)arg;
+	chopstx_usec_wait(250*1000);
+	led_blink(2);
 	chopstx_claim_irq (&interrupt, TIM3_IRQ);
+	TIM3->EGR = TIM_EGR_UG;
 	TIM3->SR &= ~0x1E5F;
 	TIM3->DIER = TIM_DIER_UIE;
+	_write("Here\r\n",6);
+	led_blink(2);
 	TIM3->CR1 |= TIM_CR1_CEN;
 
 	while (1)

@@ -303,8 +303,6 @@ main (int argc, const char *argv[])
   stdout_init ();
 #endif
 
-  timer_init();
-
   usb_thd = chopstx_create (PRIO_USB, STACK_ADDR_USB, STACK_SIZE_USB,
 			     usb_thread, NULL);
 
@@ -318,6 +316,7 @@ main (int argc, const char *argv[])
       chopstx_usec_wait (250*1000);
     }
 
+  timer_init();
   eventflag_prepare_poll (&led_event, &led_event_poll_desc);
 
   while (1)
