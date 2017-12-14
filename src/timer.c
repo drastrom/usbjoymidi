@@ -38,34 +38,39 @@ tim_main (void *arg)
 	led_blink(2);
 	chopstx_claim_irq (&interrupt, TIM3_IRQ);
 	TIM3->EGR = TIM_EGR_UG;
-	TIM3->SR &= ~0x1E5F;
+	TIM3->SR = 0;
 	TIM3->DIER = TIM_DIER_UIE;
 	_write("Here\r\n",6);
-	led_blink(2);
 	TIM3->CR1 |= TIM_CR1_CEN;
 
+#if 0
+	while (1)
+	{
+		while (!(TIM3->SR & TIM_SR_UIF));
+		_write("Heppo\r\n" ,7);
+		TIM3->SR &= ~TIM_SR_UIF;
+	}
+#else
 	while (1)
 	{
 		chopstx_intr_wait (&interrupt);
 		timer_interrupt ();
 	}
-
+#endif
 	return NULL;
 }
-
-
 
 void
 timer_init(void)
 {
-	RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
 	RCC->APB1RSTR = RCC_APB1RSTR_TIM3RST;
 	RCC->APB1RSTR = 0;
+	RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
 
 	TIM3->CR1 = TIM_CR1_URS | TIM_CR1_ARPE;
 	TIM3->SMCR = 0;
 	/* slow this puppy down */
-	TIM3->PSC = 36000 - 1; /* 2000 kHz */
+	TIM3->PSC = 36000 - 1; /* 2 kHz */
 	TIM3->ARR = 10000; /* 5s */
 	/* Generate UEV to upload PSC and ARR */
 	TIM3->EGR = TIM_EGR_UG;
