@@ -18,30 +18,26 @@ extern void led_blink(int);
 
 #define PRIO_TIM 4
 
-static volatile uint32_t *const SYST_CVR = (uint32_t *)0xE000E018;
-static uint32_t tim3_tick = 0;
+extern void put_int (uint32_t);
 
 void tim3_handler (void)
 {
-	uint32_t tmp = *SYST_CVR;
 	if ((TIM3->SR & TIM_SR_UIF))
 	{
 		TIM3->SR &= ~TIM_SR_UIF;
-		tim3_tick = tmp;
 		_write("Hello\r\n", 7);
+		put_int(TIM4->CNT);
 	}
 }
 
-extern void put_int (uint32_t);
 
 void tim4_handler (void)
 {
-	uint32_t tmp = *SYST_CVR;
 	if ((TIM4->SR & TIM_SR_UIF))
 	{
 		TIM4->SR &= ~TIM_SR_UIF;
 		_write("Hi\r\n", 4);
-		put_int(tmp - tim3_tick);
+		put_int(TIM4->CNT);
 	}
 }
 
