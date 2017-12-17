@@ -128,13 +128,11 @@ tim_main (void *arg)
 	return NULL;
 }
 
-static uint32_t gpio_start_val, gpio_reset_val;
+static uint32_t gpio_start_val = (0xF << 6), gpio_reset_val = (0xF << (6+16));
 
 void
 timer_init(void)
 {
-	gpio_start_val = (0xF << 6);
-	gpio_reset_val = (0xF << (6+16));
 	RCC->APB1RSTR = RCC_APB1RSTR_TIM3RST|RCC_APB1RSTR_TIM4RST;
 	RCC->APB1RSTR = 0;
 	RCC->APB1ENR |= RCC_APB1ENR_TIM3EN|RCC_APB1ENR_TIM4EN;
@@ -154,11 +152,11 @@ timer_init(void)
 	DMA1_Channel7->CMAR = (uint32_t)&gpio_reset_val;
 
 
-	GPIOB->BSRR = gpio_start_val;
+	GPIOB->BSRR = gpio_reset_val;
 	/* The docs are unclear here.  In fact they say something that doesn't seem to make sense (emulate AFI by putting in AFO) */
 	/* going to try putting in ouput open drain */
-	GPIOB->CRH = (GPIOB->CRH & ~0xFF) | 0x33;
-	GPIOB->CRL = (GPIOB->CRL & ~0xFF000000) | 0x33000000;
+	GPIOB->CRH = (GPIOB->CRH & ~0xFF) | 0x55;
+	GPIOB->CRL = (GPIOB->CRL & ~0xFF000000) | 0x55000000;
 
 	TIM3->CR1 = TIM_CR1_URS | TIM_CR1_ARPE;
 	TIM3->CR2 = TIM_CR2_MMS_1;
@@ -172,8 +170,8 @@ timer_init(void)
 	TIM4->CR1 = TIM_CR1_URS | TIM_CR1_ARPE | TIM_CR1_OPM;
 	TIM4->SMCR = TIM_SMCR_TS_1 | TIM_SMCR_SMS_1|TIM_SMCR_SMS_2;
 	// TODO input capture setup
-	TIM4->PSC = 0; /* 72 MHz */
-	TIM4->ARR = 0xFFFF; /* 0.9102083 ms */
+	TIM4->PSC = 2; /* 24 MHz */
+	TIM4->ARR = 0xFFFF; /* 2.730625 ms */
 	/* Generate UEV to upload PSC and ARR */
 	TIM4->EGR = TIM_EGR_UG;
 
