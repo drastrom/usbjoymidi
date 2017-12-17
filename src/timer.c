@@ -74,11 +74,11 @@ void tim4_handler (void)
 	{
 		TIM4->SR &= ~TIM_SR_UIF;
 		_write("Hi\r\n", 4);
-		put_int(TIM4->CCR1);
 		put_int(timer4_capture1);
 		put_int(timer4_capture2);
 		put_int(timer4_capture3);
 		put_int(timer4_capture4);
+		put_int(TIM4->CCR4);
 	}
 }
 
@@ -104,11 +104,11 @@ tim_main (void *arg)
 	TIM4->SR = 0;
 	TIM4->DIER = TIM_DIER_UDE|TIM_DIER_UIE|TIM_DIER_CC1DE|TIM_DIER_CC2DE|TIM_DIER_CC3DE|TIM_DIER_CC4DE;
 	DMA1->IFCR = 0x0fffffff;
-	DMA1_Channel3->CCR |= DMA_CCR1_EN;
-	DMA1_Channel7->CCR |= DMA_CCR1_EN;
 	DMA1_Channel1->CCR |= DMA_CCR1_EN;
+	DMA1_Channel3->CCR |= DMA_CCR1_EN;
 	DMA1_Channel4->CCR |= DMA_CCR1_EN;
 	DMA1_Channel5->CCR |= DMA_CCR1_EN;
+	DMA1_Channel7->CCR |= DMA_CCR1_EN;
 	_write("Here\r\n",6);
 	TIM3->CR1 |= TIM_CR1_CEN;
 
@@ -150,21 +150,16 @@ timer_init(void)
 	RCC->APB2ENR |= RCC_APB2ENR_IOPBEN;
 
 	RCC->AHBENR |= RCC_AHBENR_DMA1EN;
-	// TIM3_UP
-	DMA1_Channel3->CCR = DMA_CCR1_DIR | DMA_CCR1_CIRC | DMA_CCR1_PSIZE_1 | DMA_CCR1_MSIZE_1 | DMA_CCR1_PL;
-	DMA1_Channel3->CNDTR = 1;
-	DMA1_Channel3->CPAR = (uint32_t)&GPIOB->BSRR;
-	DMA1_Channel3->CMAR = (uint32_t)&gpio_start_val;
-	// TIM4_UP
-	DMA1_Channel7->CCR = DMA_CCR1_DIR | DMA_CCR1_CIRC | DMA_CCR1_PSIZE_1 | DMA_CCR1_MSIZE_1 | DMA_CCR1_PL;
-	DMA1_Channel7->CNDTR = 1;
-	DMA1_Channel7->CPAR = (uint32_t)&GPIOB->BSRR;
-	DMA1_Channel7->CMAR = (uint32_t)&gpio_reset_val;
 	// TIM4_CH1
 	DMA1_Channel1->CCR = DMA_CCR1_CIRC | DMA_CCR1_PSIZE_0 | DMA_CCR1_MSIZE_0 | DMA_CCR1_PL_0;
 	DMA1_Channel1->CNDTR = 1;
 	DMA1_Channel1->CPAR = (uint32_t)&TIM4->CCR1;
 	DMA1_Channel1->CMAR = (uint32_t)&timer4_capture1;
+	// TIM3_UP
+	DMA1_Channel3->CCR = DMA_CCR1_DIR | DMA_CCR1_CIRC | DMA_CCR1_PSIZE_1 | DMA_CCR1_MSIZE_1 | DMA_CCR1_PL;
+	DMA1_Channel3->CNDTR = 1;
+	DMA1_Channel3->CPAR = (uint32_t)&GPIOB->BSRR;
+	DMA1_Channel3->CMAR = (uint32_t)&gpio_start_val;
 	// TIM4_CH2
 	DMA1_Channel4->CCR = DMA_CCR1_CIRC | DMA_CCR1_PSIZE_0 | DMA_CCR1_MSIZE_0 | DMA_CCR1_PL_0;
 	DMA1_Channel4->CNDTR = 1;
@@ -175,6 +170,11 @@ timer_init(void)
 	DMA1_Channel5->CNDTR = 1;
 	DMA1_Channel5->CPAR = (uint32_t)&TIM4->CCR3;
 	DMA1_Channel5->CMAR = (uint32_t)&timer4_capture3;
+	// TIM4_UP
+	DMA1_Channel7->CCR = DMA_CCR1_DIR | DMA_CCR1_CIRC | DMA_CCR1_PSIZE_1 | DMA_CCR1_MSIZE_1 | DMA_CCR1_PL;
+	DMA1_Channel7->CNDTR = 1;
+	DMA1_Channel7->CPAR = (uint32_t)&GPIOB->BSRR;
+	DMA1_Channel7->CMAR = (uint32_t)&gpio_reset_val;
 	// TIM4_CH4
 #if 0
 	DMA1_ChannelX->CCR = DMA_CCR1_CIRC | DMA_CCR1_PSIZE_0 | DMA_CCR1_MSIZE_0 | DMA_CCR1_PL_0;
