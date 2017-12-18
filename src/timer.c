@@ -48,6 +48,14 @@ Define_DMA1_ChannelN(7);
 
 #undef Define_DMA1_ChannelN
 
+#define DMA1_CHANNEL1_IRQ 11
+#define DMA1_CHANNEL2_IRQ 12
+#define DMA1_CHANNEL3_IRQ 13
+#define DMA1_CHANNEL4_IRQ 14
+#define DMA1_CHANNEL5_IRQ 15
+#define DMA1_CHANNEL6_IRQ 16
+#define DMA1_CHANNEL7_IRQ 17
+
 
 #define STACK_PROCESS_6
 #include "stack-def.h"
@@ -87,10 +95,20 @@ void tim4_handler (void)
 	}
 }
 
-static chopstx_intr_t tim3_interrupt, tim4_interrupt;
+void DMA1_Channel7_handler(void)
+{
+	if (DMA1->ISR & DMA_ISR_TCIF7)
+	{
+		DMA1->IFCR = DMA_ISR_TCIF7;
+		_write("Ho\r\n", 4);
+	}
+}
+
+static chopstx_intr_t tim3_interrupt, tim4_interrupt, dma1_channel7_interrupt;
 static struct chx_poll_head *const tim_poll[] = {
   (struct chx_poll_head *const)&tim3_interrupt,
-  (struct chx_poll_head *const)&tim4_interrupt
+  (struct chx_poll_head *const)&tim4_interrupt,
+  (struct chx_poll_head *const)&dma1_channel7_interrupt
 };
 #define TIM_POLL_NUM (sizeof (tim_poll)/sizeof (struct chx_poll_head *))
 
@@ -134,6 +152,10 @@ tim_main (void *arg)
 		{
 			tim4_handler ();
 		}
+		if (dma1_channel7_interrupt.ready)
+		{
+			DMA1_Channel7_handler ();
+		}
 	}
 #endif
 	return NULL;
@@ -164,7 +186,7 @@ timer_init(void)
 	DMA1_Channel6->CPAR = (uint32_t)&GPIOB->BSRR;
 	DMA1_Channel6->CMAR = (uint32_t)&gpio_reset_val;
 	// TIM4_UP
-	DMA1_Channel7->CCR = DMA_CCR1_CIRC | DMA_CCR1_MINC | DMA_CCR1_PSIZE_0 | DMA_CCR1_MSIZE_0 | DMA_CCR1_PL_0;
+	DMA1_Channel7->CCR = DMA_CCR1_TCIE | DMA_CCR1_CIRC | DMA_CCR1_MINC | DMA_CCR1_PSIZE_0 | DMA_CCR1_MSIZE_0 | DMA_CCR1_PL_0;
 	DMA1_Channel7->CNDTR = 4;
 	DMA1_Channel7->CPAR = (uint32_t)&TIM4->DMAR;
 	DMA1_Channel7->CMAR = (uint32_t)&timer4_capture.capture1;
