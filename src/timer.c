@@ -166,7 +166,7 @@ timer_init(void)
 	DMA1_Channel1->CCR = DMA_CCR1_CIRC | DMA_CCR1_PSIZE_0 | DMA_CCR1_MSIZE_0 | DMA_CCR1_PL_0;
 	DMA1_Channel1->CNDTR = 1;
 	DMA1_Channel1->CPAR = (uint32_t)&TIM4->CCR1;
-	DMA1_Channel1->CMAR = (uint32_t)&timer4_capture1;
+	DMA1_Channel1->CMAR = (uint32_t)&timer4_capture.capture1;
 #endif
 	// TIM3_UP
 	DMA1_Channel3->CCR = DMA_CCR1_DIR | DMA_CCR1_CIRC | DMA_CCR1_PSIZE_1 | DMA_CCR1_MSIZE_1 | DMA_CCR1_PL;
@@ -178,12 +178,12 @@ timer_init(void)
 	DMA1_Channel4->CCR = DMA_CCR1_CIRC | DMA_CCR1_PSIZE_0 | DMA_CCR1_MSIZE_0 | DMA_CCR1_PL_0;
 	DMA1_Channel4->CNDTR = 1;
 	DMA1_Channel4->CPAR = (uint32_t)&TIM4->CCR2;
-	DMA1_Channel4->CMAR = (uint32_t)&timer4_capture2;
+	DMA1_Channel4->CMAR = (uint32_t)&timer4_capture.capture2;
 	// TIM4_CH3
 	DMA1_Channel5->CCR = DMA_CCR1_CIRC | DMA_CCR1_PSIZE_0 | DMA_CCR1_MSIZE_0 | DMA_CCR1_PL_0;
 	DMA1_Channel5->CNDTR = 1;
 	DMA1_Channel5->CPAR = (uint32_t)&TIM4->CCR3;
-	DMA1_Channel5->CMAR = (uint32_t)&timer4_capture3;
+	DMA1_Channel5->CMAR = (uint32_t)&timer4_capture.capture3;
 #endif
 	// TIM3_CH1
 	DMA1_Channel6->CCR = DMA_CCR1_DIR | DMA_CCR1_CIRC | DMA_CCR1_PSIZE_1 | DMA_CCR1_MSIZE_1 | DMA_CCR1_PL;
@@ -200,8 +200,9 @@ timer_init(void)
 	DMA1_ChannelX->CCR = DMA_CCR1_CIRC | DMA_CCR1_PSIZE_0 | DMA_CCR1_MSIZE_0 | DMA_CCR1_PL_0;
 	DMA1_ChannelX->CNDTR = 1;
 	DMA1_ChannelX->CPAR = (uint32_t)&TIM4->CCR4;
-	DMA1_ChannelX->CMAR = (uint32_t)&timer4_capture4;
+	DMA1_ChannelX->CMAR = (uint32_t)&timer4_capture.capture4;
 #endif
+	chopstx_usec_wait(1);
 
 	GPIOB->BSRR = gpio_reset_val;
 	/* The docs are unclear here.  In fact they say something that doesn't seem to make sense (emulate AFI by putting in AFO) */
@@ -227,9 +228,9 @@ timer_init(void)
 	TIM4->CCMR1 = TIM_CCMR1_CC2S_0|TIM_CCMR1_CC1S_0;
 	TIM4->CCMR2 = TIM_CCMR2_CC4S_0|TIM_CCMR2_CC3S_0;
 	TIM4->CCER = TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E | TIM_CCER_CC4E;
-	TIM4->DCR = (4 << 8) | 0xD;
-	TIM4->PSC = 2; /* 24 MHz */
-	TIM4->ARR = 0xFFFF; /* 2.730625 ms */
+	TIM4->DCR = ((4-1) << 8) | 0xD;
+	TIM4->PSC = 0; /* 72 MHz */
+	TIM4->ARR = 0xFFFF; /* 0.9102083 ms */
 	/* Generate UEV to upload PSC and ARR */
 	TIM4->EGR = TIM_EGR_UG;
 
