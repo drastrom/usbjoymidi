@@ -66,7 +66,13 @@ void tim3_handler (void)
 	}
 }
 
-static volatile uint16_t timer4_capture1 = 0, timer4_capture2 = 0, timer4_capture3 = 0, timer4_capture4 = 0;
+static struct timer_capture
+{
+	volatile uint16_t capture1;
+	volatile uint16_t capture2;
+	volatile uint16_t capture3;
+	volatile uint16_t capture4;
+} timer4_capture = {0, 0, 0, 0};
 
 void tim4_handler (void)
 {
@@ -74,10 +80,10 @@ void tim4_handler (void)
 	{
 		TIM4->SR &= ~TIM_SR_UIF;
 		_write("Hi\r\n", 4);
-		put_int(timer4_capture1);
-		put_int(timer4_capture2);
-		put_int(timer4_capture3);
-		put_int(timer4_capture4);
+		put_int(timer4_capture.capture1);
+		put_int(timer4_capture.capture2);
+		put_int(timer4_capture.capture3);
+		put_int(timer4_capture.capture4);
 		put_int(TIM4->CCR4);
 	}
 }
@@ -102,14 +108,18 @@ tim_main (void *arg)
 	TIM3->SR = 0;
 	TIM3->DIER = TIM_DIER_UDE|TIM_DIER_UIE|TIM_DIER_CC1DE;
 	TIM4->SR = 0;
-	TIM4->DIER = /*TIM_DIER_UDE|*/TIM_DIER_UIE|TIM_DIER_CC1DE|TIM_DIER_CC2DE|TIM_DIER_CC3DE|TIM_DIER_CC4DE;
+	TIM4->DIER = TIM_DIER_UDE|TIM_DIER_UIE;//|TIM_DIER_CC1DE|TIM_DIER_CC2DE|TIM_DIER_CC3DE|TIM_DIER_CC4DE;
 	DMA1->IFCR = 0x0fffffff;
+#if 0
 	DMA1_Channel1->CCR |= DMA_CCR1_EN;
+#endif
 	DMA1_Channel3->CCR |= DMA_CCR1_EN;
+#if 0
 	DMA1_Channel4->CCR |= DMA_CCR1_EN;
 	DMA1_Channel5->CCR |= DMA_CCR1_EN;
+#endif
 	DMA1_Channel6->CCR |= DMA_CCR1_EN;
-	//DMA1_Channel7->CCR |= DMA_CCR1_EN;
+	DMA1_Channel7->CCR |= DMA_CCR1_EN;
 	_write("Here\r\n",6);
 	TIM3->CR1 |= TIM_CR1_CEN;
 
@@ -151,16 +161,19 @@ timer_init(void)
 	RCC->APB2ENR |= RCC_APB2ENR_IOPBEN;
 
 	RCC->AHBENR |= RCC_AHBENR_DMA1EN;
+#if 0
 	// TIM4_CH1
 	DMA1_Channel1->CCR = DMA_CCR1_CIRC | DMA_CCR1_PSIZE_0 | DMA_CCR1_MSIZE_0 | DMA_CCR1_PL_0;
 	DMA1_Channel1->CNDTR = 1;
 	DMA1_Channel1->CPAR = (uint32_t)&TIM4->CCR1;
 	DMA1_Channel1->CMAR = (uint32_t)&timer4_capture1;
+#endif
 	// TIM3_UP
 	DMA1_Channel3->CCR = DMA_CCR1_DIR | DMA_CCR1_CIRC | DMA_CCR1_PSIZE_1 | DMA_CCR1_MSIZE_1 | DMA_CCR1_PL;
 	DMA1_Channel3->CNDTR = 1;
 	DMA1_Channel3->CPAR = (uint32_t)&GPIOB->BSRR;
 	DMA1_Channel3->CMAR = (uint32_t)&gpio_start_val;
+#if 0
 	// TIM4_CH2
 	DMA1_Channel4->CCR = DMA_CCR1_CIRC | DMA_CCR1_PSIZE_0 | DMA_CCR1_MSIZE_0 | DMA_CCR1_PL_0;
 	DMA1_Channel4->CNDTR = 1;
@@ -171,18 +184,17 @@ timer_init(void)
 	DMA1_Channel5->CNDTR = 1;
 	DMA1_Channel5->CPAR = (uint32_t)&TIM4->CCR3;
 	DMA1_Channel5->CMAR = (uint32_t)&timer4_capture3;
+#endif
 	// TIM3_CH1
 	DMA1_Channel6->CCR = DMA_CCR1_DIR | DMA_CCR1_CIRC | DMA_CCR1_PSIZE_1 | DMA_CCR1_MSIZE_1 | DMA_CCR1_PL;
 	DMA1_Channel6->CNDTR = 1;
 	DMA1_Channel6->CPAR = (uint32_t)&GPIOB->BSRR;
 	DMA1_Channel6->CMAR = (uint32_t)&gpio_reset_val;
 	// TIM4_UP
-#if 0
-	DMA1_Channel7->CCR = DMA_CCR1_DIR | DMA_CCR1_CIRC | DMA_CCR1_PSIZE_1 | DMA_CCR1_MSIZE_1 | DMA_CCR1_PL;
-	DMA1_Channel7->CNDTR = 1;
-	DMA1_Channel7->CPAR = (uint32_t)&GPIOB->BSRR;
-	DMA1_Channel7->CMAR = (uint32_t)&gpio_reset_val;
-#endif
+	DMA1_Channel7->CCR = DMA_CCR1_CIRC | DMA_CCR1_MINC | DMA_CCR1_PSIZE_0 | DMA_CCR1_MSIZE_0 | DMA_CCR1_PL_0;
+	DMA1_Channel7->CNDTR = 4;
+	DMA1_Channel7->CPAR = (uint32_t)&TIM4->DMAR;
+	DMA1_Channel7->CMAR = (uint32_t)&timer4_capture.capture1;
 	// TIM4_CH4
 #if 0
 	DMA1_ChannelX->CCR = DMA_CCR1_CIRC | DMA_CCR1_PSIZE_0 | DMA_CCR1_MSIZE_0 | DMA_CCR1_PL_0;
@@ -190,7 +202,6 @@ timer_init(void)
 	DMA1_ChannelX->CPAR = (uint32_t)&TIM4->CCR4;
 	DMA1_ChannelX->CMAR = (uint32_t)&timer4_capture4;
 #endif
-
 
 	GPIOB->BSRR = gpio_reset_val;
 	/* The docs are unclear here.  In fact they say something that doesn't seem to make sense (emulate AFI by putting in AFO) */
@@ -216,6 +227,7 @@ timer_init(void)
 	TIM4->CCMR1 = TIM_CCMR1_CC2S_0|TIM_CCMR1_CC1S_0;
 	TIM4->CCMR2 = TIM_CCMR2_CC4S_0|TIM_CCMR2_CC3S_0;
 	TIM4->CCER = TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E | TIM_CCER_CC4E;
+	TIM4->DCR = (4 << 8) | 0xD;
 	TIM4->PSC = 2; /* 24 MHz */
 	TIM4->ARR = 0xFFFF; /* 2.730625 ms */
 	/* Generate UEV to upload PSC and ARR */
