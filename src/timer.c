@@ -64,16 +64,6 @@ Define_DMA1_ChannelN(7);
 
 #define PRIO_TIM 4
 
-void tim3_handler (void)
-{
-	if ((TIM3->SR & TIM_SR_UIF))
-	{
-		TIM3->SR &= ~TIM_SR_UIF;
-		_write("Hello\r\n", 7);
-		put_int(TIM4->CNT);
-	}
-}
-
 static struct timer_capture
 {
 	volatile uint16_t capture1;
@@ -82,12 +72,12 @@ static struct timer_capture
 	volatile uint16_t capture4;
 } timer4_capture = {0, 0, 0, 0};
 
-void tim4_handler (void)
+static void DMA1_Channel7_handler(void)
 {
-	if ((TIM4->SR & TIM_SR_UIF))
+	if (DMA1->ISR & DMA_ISR_TCIF7)
 	{
-		TIM4->SR &= ~TIM_SR_UIF;
-		_write("Hi\r\n", 4);
+		DMA1->IFCR = DMA_ISR_TCIF7;
+		_write("Ho\r\n", 4);
 		put_int(timer4_capture.capture1);
 		put_int(timer4_capture.capture2);
 		put_int(timer4_capture.capture3);
@@ -95,19 +85,8 @@ void tim4_handler (void)
 	}
 }
 
-void DMA1_Channel7_handler(void)
-{
-	if (DMA1->ISR & DMA_ISR_TCIF7)
-	{
-		DMA1->IFCR = DMA_ISR_TCIF7;
-		_write("Ho\r\n", 4);
-	}
-}
-
-static chopstx_intr_t tim3_interrupt, tim4_interrupt, dma1_channel7_interrupt;
+static chopstx_intr_t dma1_channel7_interrupt;
 static struct chx_poll_head *const tim_poll[] = {
-  (struct chx_poll_head *const)&tim3_interrupt,
-  (struct chx_poll_head *const)&tim4_interrupt,
   (struct chx_poll_head *const)&dma1_channel7_interrupt
 };
 #define TIM_POLL_NUM (sizeof (tim_poll)/sizeof (struct chx_poll_head *))
@@ -120,12 +99,11 @@ tim_main (void *arg)
 	(void)arg;
 	chopstx_usec_wait(250*1000);
 	led_blink(2);
-	chopstx_claim_irq (&tim3_interrupt, TIM3_IRQ);
-	chopstx_claim_irq (&tim4_interrupt, TIM4_IRQ);
+	chopstx_claim_irq (&dma1_channel7_interrupt, DMA1_CHANNEL7_IRQ);
 	TIM3->SR = 0;
-	TIM3->DIER = TIM_DIER_UDE|TIM_DIER_UIE|TIM_DIER_CC1DE;
+	TIM3->DIER = TIM_DIER_UDE|TIM_DIER_CC1DE;
 	TIM4->SR = 0;
-	TIM4->DIER = TIM_DIER_UDE|TIM_DIER_UIE;
+	TIM4->DIER = TIM_DIER_UDE;
 	DMA1->IFCR = 0x0fffffff;
 	DMA1_Channel3->CCR |= DMA_CCR1_EN;
 	DMA1_Channel6->CCR |= DMA_CCR1_EN;
@@ -144,14 +122,6 @@ tim_main (void *arg)
 	while (1)
 	{
 		chopstx_poll (NULL, TIM_POLL_NUM, tim_poll);
-		if (tim3_interrupt.ready)
-		{
-			tim3_handler ();
-		}
-		if (tim4_interrupt.ready)
-		{
-			tim4_handler ();
-		}
 		if (dma1_channel7_interrupt.ready)
 		{
 			DMA1_Channel7_handler ();
@@ -194,7 +164,7 @@ timer_init(void)
 
 	GPIOB->BSRR = gpio_reset_val;
 	/* The docs are unclear here.  In fact they say something that doesn't seem to make sense (emulate AFI by putting in AFO) */
-	/* going to try putting in ouput open drain */
+	/* putting in ouput open drain */
 	GPIOB->CRH = (GPIOB->CRH & ~0xFF) | 0x55;
 	GPIOB->CRL = (GPIOB->CRL & ~0xFF000000) | 0x55000000;
 
