@@ -100,15 +100,16 @@ tim_main (void *arg)
 	chopstx_claim_irq (&tim3_interrupt, TIM3_IRQ);
 	chopstx_claim_irq (&tim4_interrupt, TIM4_IRQ);
 	TIM3->SR = 0;
-	TIM3->DIER = TIM_DIER_UDE|TIM_DIER_UIE;
+	TIM3->DIER = TIM_DIER_UDE|TIM_DIER_UIE|TIM_DIER_CC1DE;
 	TIM4->SR = 0;
-	TIM4->DIER = TIM_DIER_UDE|TIM_DIER_UIE|TIM_DIER_CC1DE|TIM_DIER_CC2DE|TIM_DIER_CC3DE|TIM_DIER_CC4DE;
+	TIM4->DIER = /*TIM_DIER_UDE|*/TIM_DIER_UIE|TIM_DIER_CC1DE|TIM_DIER_CC2DE|TIM_DIER_CC3DE|TIM_DIER_CC4DE;
 	DMA1->IFCR = 0x0fffffff;
 	DMA1_Channel1->CCR |= DMA_CCR1_EN;
 	DMA1_Channel3->CCR |= DMA_CCR1_EN;
 	DMA1_Channel4->CCR |= DMA_CCR1_EN;
 	DMA1_Channel5->CCR |= DMA_CCR1_EN;
-	DMA1_Channel7->CCR |= DMA_CCR1_EN;
+	DMA1_Channel6->CCR |= DMA_CCR1_EN;
+	//DMA1_Channel7->CCR |= DMA_CCR1_EN;
 	_write("Here\r\n",6);
 	TIM3->CR1 |= TIM_CR1_CEN;
 
@@ -170,11 +171,18 @@ timer_init(void)
 	DMA1_Channel5->CNDTR = 1;
 	DMA1_Channel5->CPAR = (uint32_t)&TIM4->CCR3;
 	DMA1_Channel5->CMAR = (uint32_t)&timer4_capture3;
+	// TIM3_CH1
+	DMA1_Channel6->CCR = DMA_CCR1_DIR | DMA_CCR1_CIRC | DMA_CCR1_PSIZE_1 | DMA_CCR1_MSIZE_1 | DMA_CCR1_PL;
+	DMA1_Channel6->CNDTR = 1;
+	DMA1_Channel6->CPAR = (uint32_t)&GPIOB->BSRR;
+	DMA1_Channel6->CMAR = (uint32_t)&gpio_reset_val;
 	// TIM4_UP
+#if 0
 	DMA1_Channel7->CCR = DMA_CCR1_DIR | DMA_CCR1_CIRC | DMA_CCR1_PSIZE_1 | DMA_CCR1_MSIZE_1 | DMA_CCR1_PL;
 	DMA1_Channel7->CNDTR = 1;
 	DMA1_Channel7->CPAR = (uint32_t)&GPIOB->BSRR;
 	DMA1_Channel7->CMAR = (uint32_t)&gpio_reset_val;
+#endif
 	// TIM4_CH4
 #if 0
 	DMA1_ChannelX->CCR = DMA_CCR1_CIRC | DMA_CCR1_PSIZE_0 | DMA_CCR1_MSIZE_0 | DMA_CCR1_PL_0;
@@ -196,6 +204,10 @@ timer_init(void)
 	/* slow this puppy down */
 	TIM3->PSC = 36000 - 1; /* 2 kHz */
 	TIM3->ARR = 10000; /* 5s */
+	/* set up output compare to reset gpio */
+	TIM3->CCMR1 = 0;
+	TIM3->CCR1 = 5; /* 2.5ms */
+	TIM3->CCER = TIM_CCER_CC1E;
 	/* Generate UEV to upload PSC and ARR */
 	TIM3->EGR = TIM_EGR_UG;
 
