@@ -203,6 +203,7 @@ extern void *usb_thread (void *arg);
 extern uint32_t bDeviceState;
 
 extern void timer_init(void);
+extern void exti_init(void);
 
 /*
  * Entry point.
@@ -317,6 +318,7 @@ main (int argc, const char *argv[])
     }
 
   timer_init();
+  exti_init();
   eventflag_prepare_poll (&led_event, &led_event_poll_desc);
 
   while (1)
