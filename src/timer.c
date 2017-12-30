@@ -142,8 +142,8 @@ timer_init(void)
 	TIM4->CCMR2 = TIM_CCMR2_CC4S_0|TIM_CCMR2_CC3S_0;
 	TIM4->CCER = TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E | TIM_CCER_CC4E;
 	TIM4->DCR = ((4-1) << 8) | 0xD;
-	TIM4->PSC = 0; /* 72 MHz */
-	TIM4->ARR = 0xFFFF; /* 0.9102083 ms */
+	TIM4->PSC = 1; /* 36 MHz */
+	TIM4->ARR = 0xFFFF; /* 1.8204166 ms */
 	/* Generate UEV to upload PSC and ARR */
 	TIM4->EGR = TIM_EGR_UG;
 
