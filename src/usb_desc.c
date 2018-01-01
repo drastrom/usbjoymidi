@@ -122,13 +122,13 @@ static const uint8_t config_desc[] = {
 
 
 /* USB String Descriptors */
-static const uint8_t gnuk_string_lang_id[] = {
+static const uint8_t usbmidijoy_string_lang_id[] = {
   4,				/* bLength */
   STRING_DESCRIPTOR,
   0x09, 0x04			/* LangID = 0x0409: US-English */
 };
 
-#define USB_STRINGS_FOR_GNUK 1
+#define USB_STRINGS 1
 #include "usb-strings.c.inc"
 
 struct desc
@@ -138,12 +138,12 @@ struct desc
 };
 
 static const struct desc string_descriptors[] = {
-  {gnuk_string_lang_id, sizeof (gnuk_string_lang_id)},
-  {gnuk_string_vendor, sizeof (gnuk_string_vendor)},
-  {gnuk_string_product, sizeof (gnuk_string_product)},
-  {gnuk_string_serial, sizeof (gnuk_string_serial)},
-  {gnuk_revision_detail, sizeof (gnuk_revision_detail)},
-  {gnuk_config_options, sizeof (gnuk_config_options)},
+  {usbmidijoy_string_lang_id, sizeof (usbmidijoy_string_lang_id)},
+  {usbmidijoy_string_vendor, sizeof (usbmidijoy_string_vendor)},
+  {usbmidijoy_string_product, sizeof (usbmidijoy_string_product)},
+  {usbmidijoy_string_serial, sizeof (usbmidijoy_string_serial)},
+  {usbmidijoy_revision_detail, sizeof (usbmidijoy_revision_detail)},
+  {usbmidijoy_config_options, sizeof (usbmidijoy_config_options)},
   {sys_version, sizeof (sys_version)},
 };
 #define NUM_STRING_DESC (sizeof (string_descriptors) / sizeof (struct desc))
