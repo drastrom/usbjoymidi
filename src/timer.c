@@ -5,6 +5,7 @@
 
 #include "config.h"
 #include "board.h"
+#include "usart.h"
 
 #include "stm32f103_local.h"
 
@@ -37,6 +38,7 @@ static void DMA1_Channel7_handler(void)
 		put_int(timer4_capture.capture2);
 		put_int(timer4_capture.capture3);
 		put_int(timer4_capture.capture4);
+		usart_write(3, "\x30\x40", 2);
 	}
 }
 
