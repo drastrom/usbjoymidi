@@ -45,7 +45,6 @@ get_usart_dev (uint8_t dev_no)
 
 static void *usart_main (void *arg);
 
-//static struct usart_stat usart2_stat;
 static struct usart_stat usart3_stat;
 
 int
@@ -56,6 +55,7 @@ usart_config (uint8_t dev_no, uint32_t config_bits)
 			 | USART_CR1_TE | USART_CR1_RE);
 				/* TXEIE will be enabled when putting char */
 				/* No CTSIE, PEIE, TCIE, IDLEIE, LBDIE */
+  (void)config_bits;
   if (USARTx == NULL)
     return -1;
 
@@ -65,7 +65,7 @@ usart_config (uint8_t dev_no, uint32_t config_bits)
   //else if ((config_bits & MASK_STOP) == STOP1B)
     USARTx->CR2 = (0x0 << 12);
 
-  USARTx->BRR = (uint16_t)(36000000/31250);//brr_table[i].brr_value;
+  USARTx->BRR = (uint16_t)(36000000/31250);
   USARTx->CR3 = 0;
   USARTx->CR1 = cr1_config;
   return 0;
@@ -78,7 +78,6 @@ usart_init (uint16_t prio, uintptr_t stack_addr, size_t stack_size,
 	    int (*cb) (uint8_t dev_no, uint16_t notify_bits))
 {
   ss_notify_callback = cb;
-  //usart2_stat.dev_no = 2;
   usart3_stat.dev_no = 3;
 
   /* Enable USART3 clock, and strobe reset.  */
@@ -277,26 +276,19 @@ rb_get_prepare_poll (struct rb *rb, chopstx_poll_cond_t *poll_desc)
   poll_desc->arg   = rb;
 }
 
-//static uint8_t buf_usart2_rb_a2h[256];
-//static uint8_t buf_usart2_rb_h2a[512];
 static uint8_t buf_usart3_rb_a2h[256];
 static uint8_t buf_usart3_rb_h2a[512];
 
-//static struct chx_intr usart2_intr;
 static struct chx_intr usart3_intr;
 
-//static struct rb usart2_rb_a2h;
-//static struct rb usart2_rb_h2a;
 static struct rb usart3_rb_a2h;
 static struct rb usart3_rb_h2a;
 
-//static chopstx_poll_cond_t usart2_app_write_event;
 static chopstx_poll_cond_t usart3_app_write_event;
 
 static struct chx_poll_head *usart_poll[2];
 
 /* Global variables so that it can be easier to debug.  */
-//static int usart2_tx_ready;
 static int usart3_tx_ready;
 
 #define UART_STATE_BITMAP_RX_CARRIER (1 << 0)
@@ -404,30 +396,20 @@ usart_main (void *arg)
 {
   (void)arg;
 
-  //usart2_tx_ready = 1;
   usart3_tx_ready = 1;
 
-  //chopstx_claim_irq (&usart2_intr, USART2_IRQ);
   chopstx_claim_irq (&usart3_intr, USART3_IRQ);
 
-  //rb_init (&usart2_rb_a2h, buf_usart2_rb_a2h, sizeof buf_usart2_rb_a2h);
-  //rb_init (&usart2_rb_h2a, buf_usart2_rb_h2a, sizeof buf_usart2_rb_h2a);
   rb_init (&usart3_rb_a2h, buf_usart3_rb_a2h, sizeof buf_usart3_rb_a2h);
   rb_init (&usart3_rb_h2a, buf_usart3_rb_h2a, sizeof buf_usart3_rb_h2a);
 
-  //rb_get_prepare_poll (&usart2_rb_a2h, &usart2_app_write_event);
   rb_get_prepare_poll (&usart3_rb_a2h, &usart3_app_write_event);
 
   while (1)
     {
       int n = 0;
 
-      //usart_poll[n++] = (struct chx_poll_head *)&usart2_intr;
       usart_poll[n++] = (struct chx_poll_head *)&usart3_intr;
-      /*if (usart2_tx_ready)
-	usart_poll[n++] = (struct chx_poll_head *)&usart2_app_write_event;
-      else
-	usart2_app_write_event.ready = 0;*/
       if (usart3_tx_ready)
 	usart_poll[n++] = (struct chx_poll_head *)&usart3_app_write_event;
       else
@@ -435,15 +417,8 @@ usart_main (void *arg)
 
       chopstx_poll (NULL, n, usart_poll);
 
-      /*if (usart2_intr.ready)
-	usart2_tx_ready = handle_intr (USART2, &usart2_rb_h2a, &usart2_stat);*/
-
       if (usart3_intr.ready)
 	usart3_tx_ready = handle_intr (USART3, &usart3_rb_h2a, &usart3_stat);
-
-      /*if (usart2_tx_ready && usart2_app_write_event.ready)
-	usart2_tx_ready = handle_tx_ready (USART2,
-					   &usart2_rb_a2h, &usart2_stat);*/
 
       if (usart3_tx_ready && usart3_app_write_event.ready)
 	usart3_tx_ready = handle_tx_ready (USART3,
@@ -458,9 +433,7 @@ usart_read (uint8_t dev_no, char *buf, uint16_t buflen)
 {
   struct rb *rb;
 
-  /*if (dev_no == 2)
-    rb = &usart2_rb_h2a;
-  else */if (dev_no == 3)
+  if (dev_no == 3)
     rb = &usart3_rb_h2a;
   else
     return -1;
@@ -479,9 +452,7 @@ usart_write (uint8_t dev_no, char *buf, uint16_t buflen)
 {
   struct rb *rb;
 
-  /*if (dev_no == 2)
-    rb = &usart2_rb_a2h;
-  else */if (dev_no == 3)
+  if (dev_no == 3)
     rb = &usart3_rb_a2h;
   else
     return -1;
@@ -496,9 +467,7 @@ usart_write (uint8_t dev_no, char *buf, uint16_t buflen)
 const struct usart_stat *
 usart_stat (uint8_t dev_no)
 {
-  /*if (dev_no == 2)
-    return &usart2_stat;
-  else */if (dev_no == 3)
+  if (dev_no == 3)
     return &usart3_stat;
   else
     return NULL;
