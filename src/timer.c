@@ -28,6 +28,22 @@ static struct timer_capture
 	volatile uint16_t capture4;
 } timer4_capture = {0, 0, 0, 0};
 
+/* Conversions from timer capture values to ohms and back (in python):
+ *
+ * import math
+ * ticks_to_ohms = lambda ticks: ticks/(-0.36*math.log1p(-1.6/5))
+ * ohms_to_ticks = lambda ohms: -0.36*math.log1p(-1.6/5)*ohms
+ *
+ * Note the 0.36 comes from 36MHz, the rate of the timer, so needs to be
+ * adjusted if the prescaler value is altered (or the RCC clocks, but that
+ * would require more adjustment than just here).
+ *
+ * Also note that the circuit includes a 2.2kOhm resistor in series with the
+ * axis, so you may have to compensate for that, plus everything is an
+ * approximation (not using high-precision components or anything) so it's a
+ * more of a ballpark anyway.
+ */
+
 static int seen = 0;
 
 static void DMA1_Channel7_handler(void)
