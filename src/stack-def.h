@@ -8,9 +8,9 @@
 #define SIZE_2 0x0200
 #define SIZE_3 0x0200
 #define SIZE_4 0x0200
-#define SIZE_5 0x0200
+#define SIZE_5 0x0200 /* ext   */
 #define SIZE_6 0x0200 /* timer */
-#define SIZE_7 0x0200 /* ext   */
+#define SIZE_7 0x0200
 #endif
 
 #if defined(STACK_MAIN) && !defined(GNU_LINUX_EMULATION) 
