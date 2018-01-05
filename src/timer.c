@@ -28,6 +28,8 @@ static struct timer_capture
 	volatile uint16_t capture4;
 } timer4_capture = {0, 0, 0, 0};
 
+static int seen = 0;
+
 static void DMA1_Channel7_handler(void)
 {
 	if (DMA1->ISR & DMA_ISR_TCIF7)
@@ -38,6 +40,8 @@ static void DMA1_Channel7_handler(void)
 		put_int(timer4_capture.capture2);
 		put_int(timer4_capture.capture3);
 		put_int(timer4_capture.capture4);
+		if(!seen++)
+			usart_write(3, "\x90", 1);
 		usart_write(3, "\x30\x40", 2);
 	}
 }
