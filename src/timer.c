@@ -8,9 +8,13 @@
 #include "usart.h"
 
 #include "stm32f103_local.h"
+#include "usb_lld.h"
+#include "usb_conf.h"
+#include "usb_hid.h"
 
 extern void _write (const char *s, int len);
 extern void put_int (uint32_t);
+extern void put_binary (const char *, int);
 extern void led_blink(int);
 
 #define STACK_PROCESS_6
@@ -51,14 +55,15 @@ static void DMA1_Channel7_handler(void)
 	if (DMA1->ISR & DMA_ISR_TCIF7)
 	{
 		DMA1->IFCR = DMA_ISR_TCIF7;
-		_write("Ho\r\n", 4);
-		put_int(timer4_capture.capture1);
-		put_int(timer4_capture.capture2);
-		put_int(timer4_capture.capture3);
-		put_int(timer4_capture.capture4);
-		if(!seen++)
-			usart_write(3, "\x90", 1);
-		usart_write(3, "\x30\x40", 2);
+		hid_report.st.X = timer4_capture.capture1;
+		hid_report.st.Y = timer4_capture.capture2;
+#ifdef GNU_LINUX_EMULATION
+		usb_lld_tx_enable_buf (ENDP1, &hid_report, 5);
+#else
+		usb_lld_write (ENDP1, &hid_report, 5);
+#endif
+		//put_binary((const char *)&hid_report, 5);
+		// TODO should have a mutex/event to wait for tx done
 	}
 }
 
@@ -150,7 +155,7 @@ timer_init(void)
 	TIM3->SMCR = 0;
 	/* slow this puppy down */
 	TIM3->PSC = 36000 - 1; /* 2 kHz */
-	TIM3->ARR = 10000; /* 5s */
+	TIM3->ARR = 20; /* 10ms */
 	/* set up output compare to reset gpio */
 	TIM3->CCMR1 = 0;
 	TIM3->CCR1 = 5; /* 2.5ms */

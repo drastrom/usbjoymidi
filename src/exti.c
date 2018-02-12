@@ -7,9 +7,13 @@
 #include "board.h"
 
 #include "stm32f103_local.h"
+#include "usb_lld.h"
+#include "usb_conf.h"
+#include "usb_hid.h"
 
 extern void _write (const char *s, int len);
 extern void put_byte(uint8_t);
+extern void put_binary (const char *, int);
 
 #define STACK_PROCESS_5
 #include "stack-def.h"
@@ -24,18 +28,29 @@ static void EXTI15_10_handler(void)
 	EXTI->PR = (pending & 0xF000);
 	if (pending & (1 << 12))
 	{
+		hid_report.st.button0 ^= 1;
 	}
 	if (pending & (1 << 13))
 	{
+		hid_report.st.button1 ^= 1;
 	}
 	if (pending & (1 << 14))
 	{
+		hid_report.st.button2 ^= 1;
 	}
 	if (pending & (1 << 15))
 	{
+		hid_report.st.button3 ^= 1;
 	}
 	_write("Button events: ", 15);
 	put_byte((uint8_t)((pending >> 12) & 0xF));
+#ifdef GNU_LINUX_EMULATION
+	usb_lld_tx_enable_buf (ENDP1, &hid_report, 5);
+#else
+	usb_lld_write (ENDP1, &hid_report, 5);
+#endif
+	put_binary((const char *)&hid_report, 5);
+	// TODO should have a mutex/event to wait for tx done
 }
 
 static chopstx_intr_t exti15_10_interrupt;
