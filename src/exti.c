@@ -26,22 +26,7 @@ static void EXTI15_10_handler(void)
 {
 	uint32_t pending = EXTI->PR;
 	EXTI->PR = (pending & 0xF000);
-	if (pending & (1 << 12))
-	{
-		hid_report.buttons.button0 ^= 1;
-	}
-	if (pending & (1 << 13))
-	{
-		hid_report.buttons.button1 ^= 1;
-	}
-	if (pending & (1 << 14))
-	{
-		hid_report.buttons.button2 ^= 1;
-	}
-	if (pending & (1 << 15))
-	{
-		hid_report.buttons.button3 ^= 1;
-	}
+	hid_report.buttons.raw ^= (uint8_t)((pending >> 12) & 0xF);
 	_write("Button events: ", 15);
 	put_byte((uint8_t)((pending >> 12) & 0xF));
 #ifdef GNU_LINUX_EMULATION
