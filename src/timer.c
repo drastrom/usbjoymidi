@@ -55,8 +55,8 @@ static void DMA1_Channel7_handler(void)
 	if (DMA1->ISR & DMA_ISR_TCIF7)
 	{
 		DMA1->IFCR = DMA_ISR_TCIF7;
-		hid_report.st.X = timer4_capture.capture1;
-		hid_report.st.Y = timer4_capture.capture2;
+		hid_report.X = timer4_capture.capture1;
+		hid_report.Y = timer4_capture.capture2;
 #ifdef GNU_LINUX_EMULATION
 		usb_lld_tx_enable_buf (ENDP1, &hid_report, 5);
 #else

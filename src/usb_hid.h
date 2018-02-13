@@ -3,11 +3,16 @@ union hid_report {
   struct {
     uint16_t X;
     uint16_t Y;
-    uint8_t  button0:1;
-    uint8_t  button1:1;
-    uint8_t  button2:1;
-    uint8_t  button3:1;
-  } st;
+    union {
+      uint8_t raw;
+      struct {
+        uint8_t  button0:1;
+        uint8_t  button1:1;
+        uint8_t  button2:1;
+        uint8_t  button3:1;
+      };
+    } buttons;
+  };
 };
 
 extern uint8_t hid_idle_rate;	/* in 4ms */

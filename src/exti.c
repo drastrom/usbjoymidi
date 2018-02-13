@@ -28,19 +28,19 @@ static void EXTI15_10_handler(void)
 	EXTI->PR = (pending & 0xF000);
 	if (pending & (1 << 12))
 	{
-		hid_report.st.button0 ^= 1;
+		hid_report.buttons.button0 ^= 1;
 	}
 	if (pending & (1 << 13))
 	{
-		hid_report.st.button1 ^= 1;
+		hid_report.buttons.button1 ^= 1;
 	}
 	if (pending & (1 << 14))
 	{
-		hid_report.st.button2 ^= 1;
+		hid_report.buttons.button2 ^= 1;
 	}
 	if (pending & (1 << 15))
 	{
-		hid_report.st.button3 ^= 1;
+		hid_report.buttons.button3 ^= 1;
 	}
 	_write("Button events: ", 15);
 	put_byte((uint8_t)((pending >> 12) & 0xF));
