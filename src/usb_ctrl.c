@@ -118,7 +118,25 @@ setup_endpoints_for_interface (struct usb_dev *dev,
 	usb_lld_setup_endpoint (ENDP1, EP_INTERRUPT, 0, 0, ENDP1_TXADDR, 0);
 #endif
       else
-	usb_lld_stall_tx (ENDP5);
+	usb_lld_stall_tx (ENDP1);
+    }
+  else if (interface == MIDI_INTERFACE_1)
+    {
+      if (!stop)
+	{
+#ifdef GNU_LINUX_EMULATION
+	  usb_lld_setup_endp (dev, ENDP2, 1, 0);
+	  usb_lld_setup_endp (dev, ENDP3, 0, 1);
+#else
+	  usb_lld_setup_endpoint (ENDP2, EP_INTERRUPT, 0, ENDP2_RXADDR, 0, 8);
+	  usb_lld_setup_endpoint (ENDP3, EP_INTERRUPT, 0, 0, ENDP3_TXADDR, 0);
+#endif
+	}
+      else
+	{
+	  usb_lld_stall_rx (ENDP2);
+	  usb_lld_stall_tx (ENDP3);
+	}
     }
 #ifdef ENABLE_VIRTUAL_COM_PORT
   else if (interface == VCOM_INTERFACE_0)

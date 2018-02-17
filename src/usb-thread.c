@@ -43,7 +43,7 @@ struct stdout stdout;
 #define LED_OFF	 LED_FINISH_COMMAND
 void led_blink(int spec);
 
-
+void midi_tx_done(uint8_t ep_num, int len);
 
 #if defined(DEBUG) && defined(GNU_LINUX_EMULATION)
 static uint8_t endp6_buf[VIRTUAL_COM_PORT_DATA_SIZE];
@@ -69,8 +69,12 @@ usb_rx_ready (uint8_t ep_num, uint16_t len)
 static void
 usb_tx_done (uint8_t ep_num, uint16_t len)
 {
+  if (ep_num == ENDP3)
+    {
+      midi_tx_done (ep_num, len);
+    }
 #ifdef DEBUG
-  if (ep_num == ENDP4)
+  else if (ep_num == ENDP4)
     {
       chopstx_mutex_lock (&stdout.m_dev);
       chopstx_cond_signal (&stdout.cond_dev);

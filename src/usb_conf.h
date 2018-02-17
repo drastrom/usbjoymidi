@@ -36,7 +36,7 @@
 
 /* MIDI INTR_OUT, INTR_IN */
 /* EP2: 8-byte */
-#define ENDP2_TXADDR        (0xc8)
+#define ENDP2_RXADDR        (0xc8)
 /* EP3: 8-byte */
 #define ENDP3_TXADDR        (0xd0)
 
