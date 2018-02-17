@@ -12,7 +12,7 @@
 #include "usb_conf.h"
 #include "usb-cdc.h"
 
-#define W_LENGTH(x) ((x)&0xFF), (((x)>>16)&0xFF)
+#define W_LENGTH(x) ((x)&0xFF), (((x)>>8)&0xFF)
 
 /* HID report descriptor.  */
 #define HID_REPORT_DESC_SIZE (sizeof (hid_report_desc))
