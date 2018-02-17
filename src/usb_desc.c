@@ -12,6 +12,8 @@
 #include "usb_conf.h"
 #include "usb-cdc.h"
 
+#define W_LENGTH(x) ((x)&0xFF), (((x)>>16)&0xFF)
+
 /* HID report descriptor.  */
 #define HID_REPORT_DESC_SIZE (sizeof (hid_report_desc))
 
@@ -80,14 +82,17 @@ uint8_t device_desc[] = {
 
 #define HID_TOTAL_LENGTH (9+9+7)
 
-#define W_TOTAL_LENGTH (9+HID_TOTAL_LENGTH+VCOM_TOTAL_LENGTH)
+#define MIDI_LENGTH (7+6+6+9+9+9+5+9+5)
+#define MIDI_TOTAL_LENGTH (9+9+9+MIDI_LENGTH)
+
+#define TOTAL_LENGTH (9+HID_TOTAL_LENGTH+MIDI_TOTAL_LENGTH+VCOM_TOTAL_LENGTH)
 
 
 /* Configuation Descriptor */
 static const uint8_t config_desc[] = {
   9,			   /* bLength: Configuation Descriptor size */
   CONFIG_DESCRIPTOR,	   /* bDescriptorType: Configuration */
-  W_TOTAL_LENGTH, 0x00,	   /* wTotalLength:no of returned bytes */
+  W_LENGTH(TOTAL_LENGTH),	   /* wTotalLength:no of returned bytes */
   NUM_INTERFACES,	   /* bNumInterfaces: */
   0x01,   /* bConfigurationValue: Configuration value */
   0x00,   /* iConfiguration: Index of string descriptor describing the configuration */
@@ -112,15 +117,125 @@ static const uint8_t config_desc[] = {
   0x00,	        /* bCountryCode: Hardware target country */
   0x01,         /* bNumDescriptors: Number of HID class descriptors to follow */
   0x22,         /* bDescriptorType */
-  HID_REPORT_DESC_SIZE, 0, /* wItemLength: Total length of Report descriptor */
+  W_LENGTH(HID_REPORT_DESC_SIZE), /* wItemLength: Total length of Report descriptor */
 
   /*Endpoint IN1 Descriptor*/
   7,                            /* bLength: Endpoint Descriptor size */
   ENDPOINT_DESCRIPTOR,		/* bDescriptorType: Endpoint */
   0x81,				/* bEndpointAddress: (IN1) */
   0x03,				/* bmAttributes: Interrupt */
-  0x08, 0x00,			/* wMaxPacketSize: 8 */
+  W_LENGTH(8),			/* wMaxPacketSize: 8 */
   0x0A,				/* bInterval (10ms) */
+
+  /* Interface Descriptor */
+  9,			      /* bLength: Interface Descriptor size */
+  INTERFACE_DESCRIPTOR,	      /* bDescriptorType: Interface */
+  MIDI_INTERFACE_0,	 /* bInterfaceNumber: Index of Interface */
+  0x00,		  /* bAlternateSetting: Alternate setting */
+  0x00,		  /* bNumEndpoints: Zero endpoints used */
+  0x01,		  /* bInterfaceClass: Audio Class */
+  0x01,		  /* bInterfaceSubClass: Audio Control */
+  0x00,		  /* bInterfaceProtocol: None */
+  0x00,		  /* iInterface: */
+
+  /* Audio Control Descriptor */
+  9,			      /* bLength: Audio Control Descriptor size */
+  0x24,	    /* bDescriptorType: CS_INTERFACE */
+  0x01,	    /* bDescriptorSubtype: Header desc */
+  0x10, 0x01, /* bcdADC: spec release number */
+  W_LENGTH(0x09),	    /* wTotalLength: */
+  1,	    /* bInCollection: number of streaming interfaces */
+  MIDI_INTERFACE_1,	    /* baInterfaceNr(1): Interface number of MIDIStreaming interface*/
+
+  /* Interface Descriptor */
+  9,			      /* bLength: Interface Descriptor size */
+  INTERFACE_DESCRIPTOR,	      /* bDescriptorType: Interface */
+  MIDI_INTERFACE_1,	 /* bInterfaceNumber: Index of Interface */
+  0x00,		  /* bAlternateSetting: Alternate setting */
+  0x02,		  /* bNumEndpoints: Two endpoints used */
+  0x01,		  /* bInterfaceClass: Audio Class */
+  0x03,		  /* bInterfaceSubClass: MIDI Streaming */
+  0x00,		  /* bInterfaceProtocol: None */
+  0x00,		  /* iInterface: */
+
+  /* MIDI Streaming Descriptor */
+  7,			      /* bLength: MIDI Streaming Descriptor size */
+  0x24,	    /* bDescriptorType: CS_INTERFACE */
+  0x01,	    /* bDescriptorSubtype: Header desc */
+  0x00, 0x01, /* bcdADC: spec release number */
+  W_LENGTH(MIDI_LENGTH),	    /* wTotalLength: */
+
+  /* MIDI In Jack Descriptor */
+  6,			      /* bLength: MIDI IN Jack Descriptor size */
+  0x24,	    /* bDescriptorType: CS_INTERFACE */
+  0x02,	    /* bDescriptorSubtype: MIDI_IN_JACK desc */
+  0x01,     /* bJackType: EMBEDDED  */
+  0x01,     /* bJackID */
+  0x00,     /* iJack */
+
+  /* MIDI In Jack Descriptor */
+  6,			      /* bLength: MIDI IN Jack Descriptor size */
+  0x24,	    /* bDescriptorType: CS_INTERFACE */
+  0x02,	    /* bDescriptorSubtype: MIDI_IN_JACK desc */
+  0x02,     /* bJackType: EXTERNAL  */
+  0x02,     /* bJackID */
+  0x00,     /* iJack */
+
+  /* MIDI Out Jack Descriptor */
+  9,			      /* bLength: MIDI Out Jack Descriptor size */
+  0x24,	    /* bDescriptorType: CS_INTERFACE */
+  0x03,	    /* bDescriptorSubtype: MIDI_OUT_JACK desc */
+  0x01,     /* bJackType: EMBEDDED  */
+  0x03,     /* bJackID */
+  0x01,     /* bNrInputPins */
+  0x02,     /* BaSourceID(1) */
+  0x01,     /* BaSourcePin(1) */
+  0x00,     /* iJack */
+
+  /* MIDI Out Jack Descriptor */
+  9,			      /* bLength: MIDI Out Jack Descriptor size */
+  0x24,	    /* bDescriptorType: CS_INTERFACE */
+  0x03,	    /* bDescriptorSubtype: MIDI_OUT_JACK desc */
+  0x02,     /* bJackType: EXTERNAL  */
+  0x04,     /* bJackID */
+  0x01,     /* bNrInputPins */
+  0x01,     /* BaSourceID(1) */
+  0x01,     /* BaSourcePin(1) */
+  0x00,     /* iJack */
+
+  /* Endpoint OUT2 */
+  9,			       /* bLength: Endpoint Descriptor size */
+  ENDPOINT_DESCRIPTOR,	       /* bDescriptorType: Endpoint */
+  0x02,				   /* bEndpointAddress: (OUT2) */
+  0x03,				   /* bmAttributes: Interrupt */
+  W_LENGTH(0x08),			/* wMaxPacketSize: 8 */
+  0x0A,				/* bInterval (10ms) */
+  0x00,				/* bRefresh */
+  0x00,				/* bSyncAddress */
+
+  /* MIDI Bulk OUT Endpoint Descriptor */
+  5,			       /* bLength: MIDI Bulk OUT Endpoint Descriptor size */
+  0x25,				/* bDescriptorType: CS_ENDPOINT */
+  0x01,				/* bDescriptorSubtype: MS_GENERAL */
+  0x01,				/* bNumEmbMIDIJack  */
+  0x01,				/* baAssocJackID (1) */
+
+  /* Endpoint IN3 */
+  9,			       /* bLength: Endpoint Descriptor size */
+  ENDPOINT_DESCRIPTOR,	       /* bDescriptorType: Endpoint */
+  0x83,				   /* bEndpointAddress: (IN3) */
+  0x03,				   /* bmAttributes: Interrupt */
+  W_LENGTH(0x08),			/* wMaxPacketSize: 8 */
+  0x0A,				/* bInterval (10ms) */
+  0x00,				/* bRefresh */
+  0x00,				/* bSyncAddress */
+
+  /* MIDI Bulk IN Endpoint Descriptor */
+  5,			       /* bLength: MIDI Bulk IN Endpoint Descriptor size */
+  0x25,			       /* bDescriptorType: CS_ENDPOINT */
+  0x01,			       /* bDescriptorSubtype: MS_GENERAL */
+  0x01,			       /* bNumEmbMIDIJack */
+  0x03,			       /* baAssocJackID (1) */
 
 #ifdef ENABLE_VIRTUAL_COM_PORT
   /* Interface Descriptor */
@@ -155,12 +270,12 @@ static const uint8_t config_desc[] = {
   0x06,		 /* bDescriptorSubtype: Union func desc */
   VCOM_INTERFACE_0,	 /* bMasterInterface: Communication class interface */
   VCOM_INTERFACE_1,	 /* bSlaveInterface0: Data Class Interface */
-  /*Endpoint 4 Descriptor*/
+  /*Endpoint 5 Descriptor*/
   7,			       /* bLength: Endpoint Descriptor size */
   ENDPOINT_DESCRIPTOR,	       /* bDescriptorType: Endpoint */
-  0x84,				   /* bEndpointAddress: (IN4) */
+  0x85,				   /* bEndpointAddress: (IN5) */
   0x03,				   /* bmAttributes: Interrupt */
-  VIRTUAL_COM_PORT_INT_SIZE, 0x00, /* wMaxPacketSize: */
+  W_LENGTH(VIRTUAL_COM_PORT_INT_SIZE), /* wMaxPacketSize: */
   0xFF,				   /* bInterval: */
 
   /*Data class interface descriptor*/
@@ -173,19 +288,19 @@ static const uint8_t config_desc[] = {
   0x00,			   /* bInterfaceSubClass: */
   0x00,			   /* bInterfaceProtocol: */
   0x00,			   /* iInterface: */
-  /*Endpoint 5 Descriptor*/
+  /*Endpoint 6 Descriptor*/
   7,			       /* bLength: Endpoint Descriptor size */
   ENDPOINT_DESCRIPTOR,	       /* bDescriptorType: Endpoint */
-  0x05,				    /* bEndpointAddress: (OUT5) */
+  0x06,				    /* bEndpointAddress: (OUT6) */
   0x02,				    /* bmAttributes: Bulk */
-  VIRTUAL_COM_PORT_DATA_SIZE, 0x00, /* wMaxPacketSize: */
+  W_LENGTH(VIRTUAL_COM_PORT_DATA_SIZE), /* wMaxPacketSize: */
   0x00,			     /* bInterval: ignore for Bulk transfer */
-  /*Endpoint 3 Descriptor*/
+  /*Endpoint 4 Descriptor*/
   7,			       /* bLength: Endpoint Descriptor size */
   ENDPOINT_DESCRIPTOR,	       /* bDescriptorType: Endpoint */
-  0x83,				    /* bEndpointAddress: (IN3) */
+  0x84,				    /* bEndpointAddress: (IN4) */
   0x02,				    /* bmAttributes: Bulk */
-  VIRTUAL_COM_PORT_DATA_SIZE, 0x00, /* wMaxPacketSize: */
+  W_LENGTH(VIRTUAL_COM_PORT_DATA_SIZE), /* wMaxPacketSize: */
   0x00,				    /* bInterval */
 #endif
 };

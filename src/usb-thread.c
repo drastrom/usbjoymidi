@@ -46,18 +46,18 @@ void led_blink(int spec);
 
 
 #if defined(DEBUG) && defined(GNU_LINUX_EMULATION)
-static uint8_t endp5_buf[VIRTUAL_COM_PORT_DATA_SIZE];
+static uint8_t endp6_buf[VIRTUAL_COM_PORT_DATA_SIZE];
 #endif
 
 static void
 usb_rx_ready (uint8_t ep_num, uint16_t len)
 {
 #ifdef DEBUG
-  if (ep_num == ENDP5)
+  if (ep_num == ENDP6)
     {
       chopstx_mutex_lock (&stdout.m_dev);
 #ifdef GNU_LINUX_EMULATION
-      usb_lld_rx_enable (ep_num, endp5_buf, VIRTUAL_COM_PORT_DATA_SIZE);
+      usb_lld_rx_enable (ep_num, endp6_buf, VIRTUAL_COM_PORT_DATA_SIZE);
 #else
       usb_lld_rx_enable (ep_num);
 #endif
@@ -70,7 +70,7 @@ static void
 usb_tx_done (uint8_t ep_num, uint16_t len)
 {
 #ifdef DEBUG
-  if (ep_num == ENDP3)
+  if (ep_num == ENDP4)
     {
       chopstx_mutex_lock (&stdout.m_dev);
       chopstx_cond_signal (&stdout.cond_dev);
@@ -295,9 +295,9 @@ _write (const char *s, int len)
 
       chopstx_mutex_lock (&stdout.m_dev);
 #ifdef GNU_LINUX_EMULATION
-      usb_lld_tx_enable_buf (ENDP3, s, packet_len);
+      usb_lld_tx_enable_buf (ENDP4, s, packet_len);
 #else
-      usb_lld_write (ENDP3, s, packet_len);
+      usb_lld_write (ENDP4, s, packet_len);
 #endif
       chopstx_cond_wait (&stdout.cond_dev, &stdout.m_dev);
       chopstx_mutex_unlock (&stdout.m_dev);

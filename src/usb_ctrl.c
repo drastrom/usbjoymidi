@@ -118,37 +118,37 @@ setup_endpoints_for_interface (struct usb_dev *dev,
 	usb_lld_setup_endpoint (ENDP1, EP_INTERRUPT, 0, 0, ENDP1_TXADDR, 0);
 #endif
       else
-	usb_lld_stall_tx (ENDP4);
+	usb_lld_stall_tx (ENDP5);
     }
 #ifdef ENABLE_VIRTUAL_COM_PORT
   else if (interface == VCOM_INTERFACE_0)
     {
       if (!stop)
 #ifdef GNU_LINUX_EMULATION
-	usb_lld_setup_endp (dev, ENDP4, 0, 1);
+	usb_lld_setup_endp (dev, ENDP5, 0, 1);
 #else
-	usb_lld_setup_endpoint (ENDP4, EP_INTERRUPT, 0, 0, ENDP4_TXADDR, 0);
+	usb_lld_setup_endpoint (ENDP5, EP_INTERRUPT, 0, 0, ENDP5_TXADDR, 0);
 #endif
       else
-	usb_lld_stall_tx (ENDP4);
+	usb_lld_stall_tx (ENDP5);
     }
   else if (interface == VCOM_INTERFACE_1)
     {
       if (!stop)
 	{
 #ifdef GNU_LINUX_EMULATION
-	  usb_lld_setup_endp (dev, ENDP3, 0, 1);
-	  usb_lld_setup_endp (dev, ENDP5, 1, 0);
+	  usb_lld_setup_endp (dev, ENDP4, 0, 1);
+	  usb_lld_setup_endp (dev, ENDP6, 1, 0);
 #else
-	  usb_lld_setup_endpoint (ENDP3, EP_BULK, 0, 0, ENDP3_TXADDR, 0);
-	  usb_lld_setup_endpoint (ENDP5, EP_BULK, 0, ENDP5_RXADDR, 0,
+	  usb_lld_setup_endpoint (ENDP4, EP_BULK, 0, 0, ENDP4_TXADDR, 0);
+	  usb_lld_setup_endpoint (ENDP6, EP_BULK, 0, ENDP6_RXADDR, 0,
 				  VIRTUAL_COM_PORT_DATA_SIZE);
 #endif
 	}
       else
 	{
-	  usb_lld_stall_tx (ENDP3);
-	  usb_lld_stall_rx (ENDP5);
+	  usb_lld_stall_tx (ENDP4);
+	  usb_lld_stall_rx (ENDP6);
 	}
     }
 #endif
