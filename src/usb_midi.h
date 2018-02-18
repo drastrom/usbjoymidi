@@ -9,5 +9,9 @@ union midi_event {
   };
 };
 
-extern union midi_event midi_event_tx;
+void midi_setup_endpoints(struct usb_dev *dev,
+				uint16_t interface, int stop);
+void midi_tx_done(uint8_t ep_num, uint16_t len);
+void midi_rx_ready(uint8_t ep_num, uint16_t len);
+void midi_prepare_receive(void);
 

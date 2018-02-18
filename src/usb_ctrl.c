@@ -44,6 +44,8 @@ void led_blink(int spec);
 
 #endif
 
+#include "usb_midi.h"
+
 #define USB_HID_REQ_GET_REPORT   1
 #define USB_HID_REQ_GET_IDLE     2
 #define USB_HID_REQ_GET_PROTOCOL 3
@@ -105,10 +107,6 @@ static void
 setup_endpoints_for_interface (struct usb_dev *dev,
 				uint16_t interface, int stop)
 {
-#if !defined(GNU_LINUX_EMULATION)
-  (void)dev;
-#endif
-
   if (interface == HID_INTERFACE_0)
     {
       if (!stop)
@@ -122,21 +120,7 @@ setup_endpoints_for_interface (struct usb_dev *dev,
     }
   else if (interface == MIDI_INTERFACE_1)
     {
-      if (!stop)
-	{
-#ifdef GNU_LINUX_EMULATION
-	  usb_lld_setup_endp (dev, ENDP2, 1, 0);
-	  usb_lld_setup_endp (dev, ENDP3, 0, 1);
-#else
-	  usb_lld_setup_endpoint (ENDP2, EP_INTERRUPT, 0, ENDP2_RXADDR, 0, 8);
-	  usb_lld_setup_endpoint (ENDP3, EP_INTERRUPT, 0, 0, ENDP3_TXADDR, 0);
-#endif
-	}
-      else
-	{
-	  usb_lld_stall_rx (ENDP2);
-	  usb_lld_stall_tx (ENDP3);
-	}
+      midi_setup_endpoints(dev, interface, stop);
     }
 #ifdef ENABLE_VIRTUAL_COM_PORT
   else if (interface == VCOM_INTERFACE_0)
