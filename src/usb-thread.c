@@ -38,26 +38,87 @@ struct stdout stdout;
 #include "usb_lld.h"
 #include "usb_conf.h"
 
+#include "usb_midi.h"
+#include "usart.h"
+
 /* shit from gnuk.h */
 #define LED_FINISH_COMMAND	128
 #define LED_OFF	 LED_FINISH_COMMAND
 void led_blink(int spec);
 
 void midi_tx_done(uint8_t ep_num, int len);
+void _write (const char *s, int len);
 
 #if defined(DEBUG) && defined(GNU_LINUX_EMULATION)
 static uint8_t endp6_buf[VIRTUAL_COM_PORT_DATA_SIZE];
 #endif
 
+#if defined(GNU_LINUX_EMULATION)
+static uint8_t endp2_buf[8];
+#endif
+
 static void
 usb_rx_ready (uint8_t ep_num, uint16_t len)
 {
+  if (ep_num == ENDP2)
+    {
+      int i;
+      for (i = 0; i+3 < len; i+=4)
+        {
+          union midi_event midi_event_rx;
+          uint8_t bytes = 0;
+#ifdef GNU_LINUX_EMULATION
+          memcpy (&midi_event_rx, endp2_buf + i, 4);
+#else
+          usb_lld_rxcpy ((uint8_t*)&midi_event_rx, ep_num, i, 4);
+#endif
+          switch(midi_event_rx.cin)
+            {
+            case 0x0:
+            case 0x1:
+              // Reserved for future expansion.
+              break;
+            case 0x5:
+            case 0xf:
+              bytes = 1;
+              break;
+            case 0x2:
+            case 0x6:
+            case 0xc:
+            case 0xd:
+              bytes = 2;
+              break;
+            case 0x3:
+            case 0x4:
+            case 0x7:
+            case 0x8:
+            case 0x9:
+            case 0xa:
+            case 0xb:
+            case 0xe:
+              bytes = 3;
+              break;
+            }
+          if (bytes != 0)
+              usart_write(3, (char *)&midi_event_rx.midi_0, bytes);
+        }
+      if (i < len)
+        {
+          // ??? fractional midi event?
+	  _write("dorf",4);
+        }
+#ifdef GNU_LINUX_EMULATION
+      usb_lld_rx_enable_buf (ep_num, endp2_buf, 8);
+#else
+      usb_lld_rx_enable (ep_num);
+#endif
+    }
 #ifdef DEBUG
-  if (ep_num == ENDP6)
+  else if (ep_num == ENDP6)
     {
       chopstx_mutex_lock (&stdout.m_dev);
 #ifdef GNU_LINUX_EMULATION
-      usb_lld_rx_enable (ep_num, endp6_buf, VIRTUAL_COM_PORT_DATA_SIZE);
+      usb_lld_rx_enable_buf (ep_num, endp6_buf, VIRTUAL_COM_PORT_DATA_SIZE);
 #else
       usb_lld_rx_enable (ep_num);
 #endif
@@ -228,6 +289,11 @@ usb_thread (void *arg)
 
  reset:
   timeout = USB_TIMEOUT;
+#ifdef GNU_LINUX_EMULATION
+  usb_lld_rx_enable_buf (ENDP2, endp2_buf, 8);
+#else
+  usb_lld_rx_enable (ENDP2);
+#endif
   while (1)
     {
       if (bDeviceState == USB_DEVICE_STATE_CONFIGURED)
