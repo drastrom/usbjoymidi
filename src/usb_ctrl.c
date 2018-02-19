@@ -46,17 +46,7 @@ void led_blink(int spec);
 
 #include "usb_midi.h"
 
-#define USB_HID_REQ_GET_REPORT   1
-#define USB_HID_REQ_GET_IDLE     2
-#define USB_HID_REQ_GET_PROTOCOL 3
-#define USB_HID_REQ_SET_REPORT   9
-#define USB_HID_REQ_SET_IDLE     10
-#define USB_HID_REQ_SET_PROTOCOL 11
-
 #include "usb_hid.h"
-uint8_t hid_idle_rate;	/* in 4ms */
-union hid_report hid_report_saved;
-union hid_report hid_report;
 
 #ifdef ENABLE_VIRTUAL_COM_PORT
 #include "usb-cdc.h"
@@ -109,14 +99,7 @@ setup_endpoints_for_interface (struct usb_dev *dev,
 {
   if (interface == HID_INTERFACE_0)
     {
-      if (!stop)
-#ifdef GNU_LINUX_EMULATION
-	usb_lld_setup_endp (dev, ENDP1, 0, 1);
-#else
-	usb_lld_setup_endpoint (ENDP1, EP_INTERRUPT, 0, 0, ENDP1_TXADDR, 0);
-#endif
-      else
-	usb_lld_stall_tx (ENDP1);
+      hid_setup_endpoints(dev, interface, stop);
     }
   else if (interface == MIDI_INTERFACE_1)
     {
@@ -268,27 +251,7 @@ usb_setup (struct usb_dev *dev)
   else if (type_rcp == (CLASS_REQUEST | INTERFACE_RECIPIENT))
     {
       if (arg->index == HID_INTERFACE_0)
-        {
-	  switch (arg->request)
-	    {
-	    case USB_HID_REQ_GET_IDLE:
-	      return usb_lld_ctrl_send (dev, &hid_idle_rate, 1);
-	    case USB_HID_REQ_SET_IDLE:
-	      return usb_lld_ctrl_recv (dev, &hid_idle_rate, 1);
-
-	    case USB_HID_REQ_GET_REPORT:
-	      return usb_lld_ctrl_send (dev, &hid_report, 5);
-
-	    case USB_HID_REQ_SET_REPORT:
-	    case USB_HID_REQ_GET_PROTOCOL:
-	    case USB_HID_REQ_SET_PROTOCOL:
-	      /* This driver doesn't support boot protocol or output. */
-	      return -1;
-
-	    default:
-	      return -1;
-	    }
-        }
+	return hid_data_setup (dev);
 #ifdef ENABLE_VIRTUAL_COM_PORT
       else if (arg->index == VCOM_INTERFACE_0)
 	return vcom_port_data_setup (dev);

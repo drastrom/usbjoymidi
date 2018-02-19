@@ -13,8 +13,6 @@
 #include "usb_hid.h"
 
 extern void _write (const char *s, int len);
-extern void put_int (uint32_t);
-extern void put_binary (const char *, int);
 extern void led_blink(int);
 
 #define STACK_PROCESS_6
@@ -48,8 +46,6 @@ static struct timer_capture
  * more of a ballpark anyway.
  */
 
-static int seen = 0;
-
 static void DMA1_Channel7_handler(void)
 {
 	if (DMA1->ISR & DMA_ISR_TCIF7)
@@ -57,13 +53,7 @@ static void DMA1_Channel7_handler(void)
 		DMA1->IFCR = DMA_ISR_TCIF7;
 		hid_report.X = timer4_capture.capture1;
 		hid_report.Y = timer4_capture.capture2;
-#ifdef GNU_LINUX_EMULATION
-		usb_lld_tx_enable_buf (ENDP1, &hid_report, 5);
-#else
-		usb_lld_write (ENDP1, &hid_report, 5);
-#endif
-		//put_binary((const char *)&hid_report, 5);
-		// TODO should have a mutex/event to wait for tx done
+		hid_write();
 	}
 }
 

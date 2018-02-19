@@ -15,8 +15,11 @@ union hid_report {
   };
 };
 
-extern uint8_t hid_idle_rate;	/* in 4ms */
-extern union hid_report hid_report_saved;
 extern union hid_report hid_report;
 
+void hid_setup_endpoints(struct usb_dev *dev,
+				uint16_t interface, int stop);
+void hid_tx_done(uint8_t ep_num, uint16_t len);
+int hid_data_setup(struct usb_dev *dev);
+void hid_write(void);
 

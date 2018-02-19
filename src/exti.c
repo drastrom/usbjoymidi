@@ -13,7 +13,6 @@
 
 extern void _write (const char *s, int len);
 extern void put_byte(uint8_t);
-extern void put_binary (const char *, int);
 
 #define STACK_PROCESS_5
 #include "stack-def.h"
@@ -27,15 +26,9 @@ static void EXTI15_10_handler(void)
 	uint32_t pending = EXTI->PR;
 	EXTI->PR = (pending & 0xF000);
 	hid_report.buttons.raw ^= (uint8_t)((pending >> 12) & 0xF);
+	hid_write();
 	_write("Button events: ", 15);
 	put_byte((uint8_t)((pending >> 12) & 0xF));
-#ifdef GNU_LINUX_EMULATION
-	usb_lld_tx_enable_buf (ENDP1, &hid_report, 5);
-#else
-	usb_lld_write (ENDP1, &hid_report, 5);
-#endif
-	put_binary((const char *)&hid_report, 5);
-	// TODO should have a mutex/event to wait for tx done
 }
 
 static chopstx_intr_t exti15_10_interrupt;
