@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <chopstx.h>
+#include <sys.h>
 
 #include "config.h"
 #include "board.h"
@@ -46,13 +47,38 @@ static struct timer_capture
  * more of a ballpark anyway.
  */
 
+struct calibration_values
+{
+	uint16_t xmin;
+	uint16_t xrange;
+	uint16_t ymin;
+	uint16_t yrange;
+} calibration_values
+__attribute__ ((section (".usbmidijoy_flash.calibration_values")))
+= {280, 14672 - 280, 280, 16384 - 280};
+
+void
+update_calibration_values(uint16_t xmin, uint16_t xmax, uint16_t ymin, uint16_t ymax)
+{
+	flash_erase_page((uintptr_t)&calibration_values);
+	flash_program_halfword((uintptr_t)&calibration_values.xmin, xmin);
+	flash_program_halfword((uintptr_t)&calibration_values.xrange, xmax - xmin);
+	flash_program_halfword((uintptr_t)&calibration_values.ymin, ymin);
+	flash_program_halfword((uintptr_t)&calibration_values.yrange, ymax - ymin);
+}
+
+static uint16_t map(uint16_t x, uint16_t x_min, uint16_t x_range, uint16_t ret_min, uint16_t ret_range)
+{
+	return (uint16_t)((uint32_t)(x - x_min) * ret_range / x_range) + ret_min;
+}
+
 static void DMA1_Channel7_handler(void)
 {
 	if (DMA1->ISR & DMA_ISR_TCIF7)
 	{
 		DMA1->IFCR = DMA_ISR_TCIF7;
-		hid_report.X = timer4_capture.capture1;
-		hid_report.Y = timer4_capture.capture2;
+		hid_report.X = map(timer4_capture.capture1, calibration_values.xmin, calibration_values.xrange, 1, 65535 - 1);
+		hid_report.Y = map(timer4_capture.capture2, calibration_values.ymin, calibration_values.yrange, 1, 65535 - 1);
 		hid_write();
 	}
 }

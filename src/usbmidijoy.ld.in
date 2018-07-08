@@ -119,6 +119,12 @@ SECTIONS
     . = ALIGN(512);
 
     _regnual_start = .;
+
+    .usbmidijoy_flash :
+    {
+	    . = ALIGN(@FLASH_PAGE_SIZE@);
+	    KEEP(*(.usbmidijoy_flash.calibration_values));
+    } > flash =0xffffffff
 }
 
 __heap_base__   = _end;
