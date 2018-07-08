@@ -82,6 +82,8 @@ void hid_write(void)
 #endif
 	// TODO should have a mutex/event to wait for tx done
 	hid_report_saved = hid_report;
+#ifdef REALLY_VERBOSE_DEBUG
 	put_binary((const char *)&hid_report, 5);
+#endif
 }
 
