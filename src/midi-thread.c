@@ -17,10 +17,12 @@ static chopstx_mutex_t midi_tx_mut;
 static chopstx_cond_t  midi_tx_cond;
 
 extern void _write (const char *s, int len);
+#ifdef DEBUG
 extern void put_byte_with_no_nl(uint8_t);
 extern void put_int(uint32_t);
 extern void put_short(uint16_t);
 extern void put_binary (const char *, int);
+#endif
 
 #define STACK_PROCESS_2
 #define STACK_PROCESS_7
@@ -58,16 +60,23 @@ midi_main (void *arg)
 #endif
 		chopstx_cond_wait(&midi_tx_cond, &midi_tx_mut);
 		chopstx_mutex_unlock(&midi_tx_mut);
+#ifdef DEBUG
 		put_binary((const char *)&midi_event_tx, 4);
+#endif
 	}
 	return NULL;
 }
 
 static int my_callback(uint8_t dev_no, uint16_t notify_bits)
 {
+#ifdef DEBUG
 	_write("callback: ", 10);
 	put_int(dev_no);
 	put_short(notify_bits);
+#else
+	(void)dev_no;
+	(void)notify_bits;
+#endif
 	return 0;
 }
 

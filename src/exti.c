@@ -12,7 +12,9 @@
 #include "usb_hid.h"
 
 extern void _write (const char *s, int len);
+#ifdef DEBUG
 extern void put_byte(uint8_t);
+#endif
 
 #define STACK_PROCESS_5
 #include "stack-def.h"
@@ -27,8 +29,10 @@ static void EXTI15_10_handler(void)
 	EXTI->PR = (pending & 0xF000);
 	hid_report.buttons ^= (uint8_t)((pending >> 12) & 0xF);
 	hid_write();
+#ifdef DEBUG
 	_write("Button events: ", 15);
 	put_byte((uint8_t)((pending >> 12) & 0xF));
+#endif
 }
 
 static chopstx_intr_t exti15_10_interrupt;

@@ -11,7 +11,9 @@
 #include "usb_conf.h"
 #include "usb_hid.h"
 
+#ifdef DEBUG
 extern void put_binary (const char *, int);
+#endif
 
 #define USB_HID_REQ_GET_REPORT   1
 #define USB_HID_REQ_GET_IDLE     2
@@ -82,8 +84,7 @@ void hid_write(void)
 #endif
 	// TODO should have a mutex/event to wait for tx done
 	hid_report_saved = hid_report;
-#define REALLY_VERBOSE_DEBUG
-#ifdef REALLY_VERBOSE_DEBUG
+#if defined(DEBUG) && defined(REALLY_VERBOSE_DEBUG)
 	put_binary((const char *)&hid_report, sizeof(hid_report));
 #endif
 }
