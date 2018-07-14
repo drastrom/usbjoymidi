@@ -51,8 +51,10 @@ static void DMA1_Channel7_handler(void)
 	if (DMA1->ISR & DMA_ISR_TCIF7)
 	{
 		DMA1->IFCR = DMA_ISR_TCIF7;
-		hid_report.X = timer4_capture.capture1;
-		hid_report.Y = timer4_capture.capture2;
+		hid_report.X = timer4_capture.capture1 >> 1;
+		hid_report.Y = timer4_capture.capture2 >> 1;
+		hid_report.Z = timer4_capture.capture3 >> 1;
+		hid_report.W = timer4_capture.capture4 >> 1;
 		hid_write();
 	}
 }

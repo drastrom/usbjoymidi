@@ -25,7 +25,7 @@ static void EXTI15_10_handler(void)
 {
 	uint32_t pending = EXTI->PR;
 	EXTI->PR = (pending & 0xF000);
-	hid_report.buttons.raw ^= (uint8_t)((pending >> 12) & 0xF);
+	hid_report.buttons ^= (uint8_t)((pending >> 12) & 0xF);
 	hid_write();
 	_write("Button events: ", 15);
 	put_byte((uint8_t)((pending >> 12) & 0xF));

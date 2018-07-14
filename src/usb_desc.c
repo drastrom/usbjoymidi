@@ -23,7 +23,7 @@ static const uint8_t hid_report_desc[] = {
   0xa1, 0x01,	    /* COLLECTION (Application) */
   /*TODO: calibrate*/
   0x15, 0x01,       /*   LOGICAL_MINIMUM (1) */
-  0x26, 0xff, 0xff, /*   LOGICAL_MAXIMUM (65535) */
+  0x26, 0xff, 0x7f, /*   LOGICAL_MAXIMUM (32767) */
 #if 0
   // game pad
   0x16, 0x18, 0x01, /*   LOGICAL_MINIMUM (280) */
@@ -34,10 +34,14 @@ static const uint8_t hid_report_desc[] = {
   0xa1, 0x00,       /*   COLLECTION (Physical) */
   0x09, 0x30,       /*     USAGE (X) */
   0x09, 0x31,       /*     USAGE (Y) */
-  0x75, 0x10,       /*     REPORT_SIZE (16) */
-  0x95, 0x02,       /*     REPORT_COUNT (2) */
+  0x09, 0x35,       /*     USAGE (Rz) */
+  0x75, 0x0F,       /*     REPORT_SIZE (15) */
+  0x95, 0x03,       /*     REPORT_COUNT (3) */
   0x81, 0x02,       /*     INPUT (Data,Var,Abs) */
   0xC0,             /*   END_COLLECTION */
+  0x09, 0x36,       /*   USAGE (Slider) */
+  0x95, 0x01,       /*   REPORT_COUNT (1) */
+  0x81, 0x02,       /*   INPUT (Data,Var,Abs) */
   0x05, 0x09,       /*   USAGE_PAGE (Button) */
   0x19, 0x01,       /*   USAGE_MINIMUM (Button 1) */
   0x29, 0x04,       /*   USAGE_MAXIMUM (Button 4) */
@@ -48,10 +52,6 @@ static const uint8_t hid_report_desc[] = {
   0x55, 0x00,       /*   UNIT_EXPONENT (0) */
   0x65, 0x00,       /*   UNIT (None) */
   0x81, 0x02,       /*   INPUT (Data,Var,Abs) */
-  /* pad to byte boundary */
-  0x75, 0x01,       /*   REPORT_SIZE (1) */
-  0x95, 0x04,       /*   REPORT_COUNT (4) */
-  0x81, 0x01,       /*   INPUT (Constant) */
   0xc0              /* END_COLLECTION */
 };
 

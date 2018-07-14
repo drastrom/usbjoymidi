@@ -76,14 +76,15 @@ void hid_write(void)
 	// if the hid_report has changed OR it has been more than
 	// hid_idle_rate * 4ms since the last report
 #ifdef GNU_LINUX_EMULATION
-	usb_lld_tx_enable_buf (ENDP1, &hid_report, 5);
+	usb_lld_tx_enable_buf (ENDP1, &hid_report, sizeof(hid_report));
 #else
-	usb_lld_write (ENDP1, &hid_report, 5);
+	usb_lld_write (ENDP1, &hid_report, sizeof(hid_report));
 #endif
 	// TODO should have a mutex/event to wait for tx done
 	hid_report_saved = hid_report;
+#define REALLY_VERBOSE_DEBUG
 #ifdef REALLY_VERBOSE_DEBUG
-	put_binary((const char *)&hid_report, 5);
+	put_binary((const char *)&hid_report, sizeof(hid_report));
 #endif
 }
 
