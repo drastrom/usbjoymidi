@@ -53,18 +53,26 @@ struct calibration_values
 	uint16_t xrange;
 	uint16_t ymin;
 	uint16_t yrange;
+	uint16_t zmin;
+	uint16_t zrange;
+	uint16_t wmin;
+	uint16_t wrange;
 } calibration_values
 __attribute__ ((section (".usbmidijoy_flash.calibration_values")))
-= {280, 14672 - 280, 280, 16384 - 280};
+= {280, 14672 - 280, 280, 16384 - 280, 280, 14672 - 280, 280, 16384 - 280};
 
 void
-update_calibration_values(uint16_t xmin, uint16_t xmax, uint16_t ymin, uint16_t ymax)
+update_calibration_values(uint16_t xmin, uint16_t xmax, uint16_t ymin, uint16_t ymax, uint16_t zmin, uint16_t zmax, uint16_t wmin, uint16_t wmax)
 {
 	flash_erase_page((uintptr_t)&calibration_values);
 	flash_program_halfword((uintptr_t)&calibration_values.xmin, xmin);
 	flash_program_halfword((uintptr_t)&calibration_values.xrange, xmax - xmin);
 	flash_program_halfword((uintptr_t)&calibration_values.ymin, ymin);
 	flash_program_halfword((uintptr_t)&calibration_values.yrange, ymax - ymin);
+	flash_program_halfword((uintptr_t)&calibration_values.zmin, zmin);
+	flash_program_halfword((uintptr_t)&calibration_values.zrange, zmax - zmin);
+	flash_program_halfword((uintptr_t)&calibration_values.wmin, wmin);
+	flash_program_halfword((uintptr_t)&calibration_values.wrange, wmax - wmin);
 }
 
 static uint16_t map(uint16_t x, uint16_t x_min, uint16_t x_range, uint16_t ret_min, uint16_t ret_range)
@@ -77,8 +85,10 @@ static void DMA1_Channel7_handler(void)
 	if (DMA1->ISR & DMA_ISR_TCIF7)
 	{
 		DMA1->IFCR = DMA_ISR_TCIF7;
-		hid_report.X = map(timer4_capture.capture1, calibration_values.xmin, calibration_values.xrange, 1, 65535 - 1);
-		hid_report.Y = map(timer4_capture.capture2, calibration_values.ymin, calibration_values.yrange, 1, 65535 - 1);
+		hid_report.X = map(timer4_capture.capture1, calibration_values.xmin, calibration_values.xrange, 1, 32767 - 1);
+		hid_report.Y = map(timer4_capture.capture2, calibration_values.ymin, calibration_values.yrange, 1, 32767 - 1);
+		hid_report.Z = map(timer4_capture.capture3, calibration_values.zmin, calibration_values.zrange, 1, 32767 - 1);
+		hid_report.W = map(timer4_capture.capture4, calibration_values.wmin, calibration_values.wrange, 1, 32767 - 1);
 		hid_write();
 	}
 }

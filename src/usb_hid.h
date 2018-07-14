@@ -1,17 +1,11 @@
 union hid_report {
   uint64_t raw;
   struct {
-    uint16_t X;
-    uint16_t Y;
-    union {
-      uint8_t raw;
-      struct {
-        uint8_t  button0:1;
-        uint8_t  button1:1;
-        uint8_t  button2:1;
-        uint8_t  button3:1;
-      };
-    } buttons;
+    uint64_t X:15;
+    uint64_t Y:15;
+    uint64_t Z:15;
+    uint64_t W:15;
+    uint64_t buttons:4;
   };
 };
 
