@@ -27,6 +27,9 @@ static void EXTI15_10_handler(void)
 {
 	uint32_t pending = EXTI->PR;
 	EXTI->PR = (pending & 0xF000);
+	// TODO: debounce?
+	// TODO: use GPIO state instead of toggling each trigger
+	// have seen where this leaves buttons in wrong state
 	hid_report.buttons ^= (uint8_t)((pending >> 12) & 0xF);
 	hid_write();
 #ifdef DEBUG

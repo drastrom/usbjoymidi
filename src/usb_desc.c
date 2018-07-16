@@ -21,14 +21,8 @@ static const uint8_t hid_report_desc[] = {
   0x05, 0x01,	    /* USAGE_PAGE (Generic Desktop) */
   0x09, 0x04,	    /* USAGE (Joystick) */
   0xa1, 0x01,	    /* COLLECTION (Application) */
-  /*TODO: calibrate*/
   0x15, 0x01,       /*   LOGICAL_MINIMUM (1) */
   0x26, 0xff, 0x7f, /*   LOGICAL_MAXIMUM (32767) */
-#if 0
-  // game pad
-  0x16, 0x18, 0x01, /*   LOGICAL_MINIMUM (280) */
-  0x26, 0x28, 0x3c, /*   LOGICAL_MAXIMUM (15400) */
-#endif
   0x05, 0x01,	    /*   USAGE_PAGE (Generic Desktop) */
   0x09, 0x01,	    /*   USAGE (Pointer) */
   0xa1, 0x00,       /*   COLLECTION (Physical) */

@@ -75,6 +75,7 @@ int hid_data_setup(struct usb_dev *dev)
 
 void hid_write(void)
 {
+	// TODO: rate limit:
 	// if the hid_report has changed OR it has been more than
 	// hid_idle_rate * 4ms since the last report
 #ifdef GNU_LINUX_EMULATION
