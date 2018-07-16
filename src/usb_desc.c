@@ -57,9 +57,9 @@ uint8_t device_desc[] = {
   18,   /* bLength */
   DEVICE_DESCRIPTOR,     /* bDescriptorType */
   0x10, 0x01,            /* bcdUSB = 1.1 */
-  0x00,   /* bDeviceClass: 0 means deferred to interface */
-  0x00,   /* bDeviceSubClass */
-  0x00,   /* bDeviceProtocol */
+  0xef,   /* bDeviceClass: Misc device class */
+  0x02,   /* bDeviceSubClass: Common class */
+  0x01,   /* bDeviceProtocol: Interface association descriptor */
   0x40,   /* bMaxPacketSize0 */
 #include "usb-vid-pid-ver.c.inc"
   1, /* Index of string descriptor describing manufacturer */
@@ -69,7 +69,7 @@ uint8_t device_desc[] = {
 };
 
 #ifdef ENABLE_VIRTUAL_COM_PORT
-#define VCOM_TOTAL_LENGTH (9+5+5+4+5+7+9+7+7)
+#define VCOM_TOTAL_LENGTH (8+9+5+5+4+5+7+9+7+7)
 #else
 #define VCOM_TOTAL_LENGTH   0
 #endif
@@ -77,10 +77,9 @@ uint8_t device_desc[] = {
 #define HID_TOTAL_LENGTH (9+9+7)
 
 #define MIDI_LENGTH (7+6+6+9+9+9+5+9+5)
-#define MIDI_TOTAL_LENGTH (9+9+9+MIDI_LENGTH)
+#define MIDI_TOTAL_LENGTH (8+9+9+9+MIDI_LENGTH)
 
 #define TOTAL_LENGTH (9+HID_TOTAL_LENGTH+MIDI_TOTAL_LENGTH+VCOM_TOTAL_LENGTH)
-
 
 /* Configuation Descriptor */
 static const uint8_t config_desc[] = {
@@ -120,6 +119,16 @@ static const uint8_t config_desc[] = {
   0x03,				/* bmAttributes: Interrupt */
   W_LENGTH(8),			/* wMaxPacketSize: 8 */
   0x0A,				/* bInterval (10ms) */
+
+  /* Interface Association Descriptor */
+  8,			      /* bLength: Interface Association Descriptor size */
+  0x0b,			      /* bDescriptorType: Interface Association */
+  MIDI_INTERFACE_0,	      /* bInterfaceNumber of first interface */
+  2,			      /* bInterfaceCount of contiguous interfaces */
+  0x01,			      /* bFunctionClass: Audio Class */
+  0x01,			      /* bFunctionSubClass: Audio Control */
+  0x00,			      /* bInterfaceProtocol: None */
+  0x00,			      /* iFunction: */
 
   /* Interface Descriptor */
   9,			      /* bLength: Interface Descriptor size */
@@ -232,6 +241,16 @@ static const uint8_t config_desc[] = {
   0x03,			       /* baAssocJackID (1) */
 
 #ifdef ENABLE_VIRTUAL_COM_PORT
+  /* Interface Association Descriptor */
+  8,			      /* bLength: Interface Association Descriptor size */
+  0x0b,			      /* bDescriptorType: Interface Association */
+  VCOM_INTERFACE_0,	      /* bInterfaceNumber of first interface */
+  2,			      /* bInterfaceCount of contiguous interfaces */
+  0x02,			      /* bFunctionClass: Communication Interface Class */
+  0x02,			      /* bFunctionSubClass: Abstract Control Model */
+  0x01,			      /* bInterfaceProtocol: Common AT commands */
+  0x00,			      /* iFunction: */
+
   /* Interface Descriptor */
   9,			      /* bLength: Interface Descriptor size */
   INTERFACE_DESCRIPTOR,	      /* bDescriptorType: Interface */
