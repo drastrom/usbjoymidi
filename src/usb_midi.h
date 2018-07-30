@@ -1,5 +1,4 @@
 union midi_event {
-  uint32_t raw;
   struct {
     uint8_t cin:4; // Code Index Number
     uint8_t cn :4; // Cable Number
@@ -7,6 +6,7 @@ union midi_event {
     uint8_t midi_1;
     uint8_t midi_2;
   };
+  uint32_t raw;
 };
 
 void midi_setup_endpoints(struct usb_dev *dev,
