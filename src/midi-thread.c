@@ -12,8 +12,6 @@
 #include "usb_conf.h"
 #include "usb_midi.h"
 
-static union midi_event midi_event_tx = {0},
-	     midi_event_realtime_tx = {{0xF, 0, 0, 0, 0}};
 static chopstx_mutex_t midi_tx_mut;
 static chopstx_cond_t  midi_tx_cond;
 
@@ -53,12 +51,15 @@ midi_transmit(union midi_event * tx_event)
 static void *
 midi_main (void *arg)
 {
+	union midi_event midi_event_tx = {0},
+	      midi_event_realtime_tx = {{0xF, 0, 0, 0, 0}};
 	uint8_t read_byte = 0;
 	struct {
 		uint8_t bytes:2;
 		uint8_t in_sysex:1;
 		uint8_t reserved:5;
 	} flags = {0};
+
 	(void)arg;
 	chopstx_usec_wait(250*1000);
 	_write("Blorg\r\n",7);
@@ -93,6 +94,11 @@ midi_main (void *arg)
 					if (read_byte == 0xF7)
 						*(&midi_event_tx.midi_0 + flags.bytes++) = read_byte;
 					midi_event_tx.cin = 4 + flags.bytes;
+					// this could only happen if we just sent a full 3-byte sysex event, and then
+					// received a status byte other than EOX to terminate sysex mode.  In this case,
+					// we'll never send an event that explicitly ends sysex, but since the device
+					// we're talking to never explicitly ended sysex (by sending EOX), I guess
+					// that's ok
 					if (flags.bytes > 0)
 						midi_transmit(&midi_event_tx);
 					flags.in_sysex = 0;
@@ -105,67 +111,73 @@ midi_main (void *arg)
 				midi_event_tx.midi_0 = read_byte;
 				if (read_byte < 0xF0)
 					midi_event_tx.cin = (read_byte >> 4) & 0xF;
-				else if (read_byte == 0xF0)
-					flags.in_sysex = 1;
-				else if (read_byte == 0xF1 || read_byte == 0xF3)
-					midi_event_tx.cin = 2;
-				else if (read_byte == 0xF2)
-					midi_event_tx.cin = 3;
-				else if (read_byte == 0xF6)
+				else switch (read_byte)
 				{
-					midi_event_tx.cin = 5;
-					midi_transmit(&midi_event_tx);
+					case 0xF0:
+						flags.in_sysex = 1;
+						break;
+					case 0xF1:
+					case 0xF3:
+						midi_event_tx.cin = 2;
+						break;
+					case 0xF2:
+						midi_event_tx.cin = 3;
+						break;
+					case 0xF6:
+						midi_event_tx.cin = 5;
+						midi_transmit(&midi_event_tx);
+						break;
 				}
 			}
-			else
+			else if (flags.bytes == 2)
 			{
-				if (flags.bytes == 2)
+				flags.bytes = 1;
+				midi_event_tx.midi_2 = read_byte;
+				midi_transmit(&midi_event_tx);
+				// clear running-status here, as it wasn't possible to do so where the flowchart
+				// said (see below)
+				if ((midi_event_tx.midi_0 & 0xF0) == 0xF0)
+					midi_event_tx.midi_0 = 0;
+			}
+			else if (midi_event_tx.midi_0 != 0)
+			{
+				switch ((midi_event_tx.midi_0 >> 4) & 0xF)
 				{
-					flags.bytes = 1;
-					midi_event_tx.midi_2 = read_byte;
-					midi_transmit(&midi_event_tx);
-					// clear running-status here, as it wasn't possible to do so where the flowchart said (see below)
-					if ((midi_event_tx.midi_0 & 0xF0) == 0xF0)
-						midi_event_tx.midi_0 = 0;
-				}
-				else if (midi_event_tx.midi_0 != 0)
-				{
-					switch ((midi_event_tx.midi_0 >> 4) & 0xF)
-					{
-						case 0x8:
-						case 0x9:
-						case 0xA:
-						case 0xB:
-						case 0xE:
-							midi_event_tx.midi_1 = read_byte;
-							flags.bytes = 2;
-							break;
-						case 0xC:
-						case 0xD:
-							midi_event_tx.midi_1 = read_byte;
-							midi_transmit(&midi_event_tx);
-							break;
-						case 0xF:
-							switch (midi_event_tx.midi_0)
-							{
-								case 0xF2:
-									midi_event_tx.midi_1 = read_byte;
-									flags.bytes = 2;
-									// can't clear the running status here like the flowchart says, because it is also the byte to be sent in the transmit once the 3rd byte is received.  It'll have to be cleared post-transmit
-									break;
-								case 0xF1:
-								case 0xF3:
-									midi_event_tx.midi_1 = read_byte;
-									midi_transmit(&midi_event_tx);
-									// fall through
-								default:
-									// Ignore?!?
-									midi_event_tx.midi_0 = 0;
-							}
-							break;
-						default: // should not be possible
-							break;
-					}
+					case 0x8:
+					case 0x9:
+					case 0xA:
+					case 0xB:
+					case 0xE:
+						midi_event_tx.midi_1 = read_byte;
+						flags.bytes = 2;
+						break;
+					case 0xC:
+					case 0xD:
+						midi_event_tx.midi_1 = read_byte;
+						midi_transmit(&midi_event_tx);
+						break;
+					case 0xF:
+						switch (midi_event_tx.midi_0)
+						{
+							case 0xF2:
+								midi_event_tx.midi_1 = read_byte;
+								flags.bytes = 2;
+								// can't clear the running status here like the flowchart says,
+								// because it is also the byte to be sent in the transmit once the
+								// 3rd byte is received.  It'll have to be cleared post-transmit
+								break;
+							case 0xF1:
+							case 0xF3:
+								midi_event_tx.midi_1 = read_byte;
+								midi_transmit(&midi_event_tx);
+								// fall through
+							default:
+								// Ignore?!?
+								midi_event_tx.midi_0 = 0;
+						}
+						break;
+					default: // should not be possible
+						break;
 				}
 			}
 		}
