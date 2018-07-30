@@ -12,7 +12,8 @@
 #include "usb_conf.h"
 #include "usb_midi.h"
 
-static union midi_event midi_event_tx;
+static union midi_event midi_event_tx = {0},
+	     midi_event_realtime_tx = {{0xF, 0, 0, 0, 0}};
 static chopstx_mutex_t midi_tx_mut;
 static chopstx_cond_t  midi_tx_cond;
 
@@ -35,34 +36,140 @@ extern void put_binary (const char *, int);
 #define PRIO_MIDI 3
 #define PRIO_USART 5
 
+static void
+midi_transmit(union midi_event * tx_event)
+{
+#ifdef GNU_LINUX_EMULATION
+	usb_lld_tx_enable_buf (ENDP3, tx_event, 4);
+#else
+	usb_lld_write (ENDP3, tx_event, 4);
+#endif
+	chopstx_cond_wait(&midi_tx_cond, &midi_tx_mut);
+#ifdef DEBUG
+	put_binary((const char *)tx_event, 4);
+#endif
+}
+
 static void *
 midi_main (void *arg)
 {
-	char read_byte = 0;
+	uint8_t read_byte = 0;
+	struct {
+		uint8_t bytes:2;
+		uint8_t in_sysex:1;
+		uint8_t reserved:5;
+	} flags = {0};
 	(void)arg;
 	chopstx_usec_wait(250*1000);
 	_write("Blorg\r\n",7);
-	while(usart_read(3, &read_byte, 1))
+	while(usart_read(3, (char *)&read_byte, 1))
 	{
 		chopstx_mutex_lock(&midi_tx_mut);
-		// Write single bytes (CIN = 0xF)
-		// TODO parse midi and properly classify CIN
-		// Noticed a pattern - most of the time the most-significant nibble of the status byte matches the cin
-		midi_event_tx.raw = 0;
-		midi_event_tx.cin = 0xF;
-		//midi_event_tx.cn = 0; // XXX is this the 0-based index in the endpoint descriptor's list, or is this the JackID?
-		midi_event_tx.midi_0 = (uint8_t)read_byte;
-		// midi_event_tx.midi_1 = midi_event_tx.midi_2 = 0;
-#ifdef GNU_LINUX_EMULATION
-		usb_lld_tx_enable_buf (ENDP3, &midi_event_tx, 4);
-#else
-		usb_lld_write (ENDP3, &midi_event_tx, 4);
-#endif
-		chopstx_cond_wait(&midi_tx_cond, &midi_tx_mut);
+		if (read_byte >= 0xF8 /*&& read_byte <= 0xFF*/)
+		{
+			// real-time: don't touch running status,
+			// transmit immediately
+			midi_event_realtime_tx.midi_0 = read_byte;
+			midi_transmit(&midi_event_realtime_tx);
+		}
+		else
+		{
+			if (flags.in_sysex)
+			{
+				if (!(read_byte & 0x80))
+				{
+					*(&midi_event_tx.midi_0 + flags.bytes++) = read_byte;
+					if (flags.bytes == 3)
+					{
+						flags.bytes = 0;
+						midi_event_tx.cin = 4;
+						midi_transmit(&midi_event_tx);
+					}
+					chopstx_mutex_unlock(&midi_tx_mut);
+					continue;
+				}
+				else
+				{
+					if (read_byte == 0xF7)
+						*(&midi_event_tx.midi_0 + flags.bytes++) = read_byte;
+					midi_event_tx.cin = 4 + flags.bytes;
+					if (flags.bytes > 0)
+						midi_transmit(&midi_event_tx);
+					flags.in_sysex = 0;
+				}
+			}
+
+			if (read_byte & 0x80)
+			{
+				flags.bytes = 1;
+				midi_event_tx.midi_0 = read_byte;
+				if (read_byte < 0xF0)
+					midi_event_tx.cin = (read_byte >> 4) & 0xF;
+				else if (read_byte == 0xF0)
+					flags.in_sysex = 1;
+				else if (read_byte == 0xF1 || read_byte == 0xF3)
+					midi_event_tx.cin = 2;
+				else if (read_byte == 0xF2)
+					midi_event_tx.cin = 3;
+				else if (read_byte == 0xF6)
+				{
+					midi_event_tx.cin = 5;
+					midi_transmit(&midi_event_tx);
+				}
+			}
+			else
+			{
+				if (flags.bytes == 2)
+				{
+					flags.bytes = 1;
+					midi_event_tx.midi_2 = read_byte;
+					midi_transmit(&midi_event_tx);
+					// clear running-status here, as it wasn't possible to do so where the flowchart said (see below)
+					if ((midi_event_tx.midi_0 & 0xF0) == 0xF0)
+						midi_event_tx.midi_0 = 0;
+				}
+				else if (midi_event_tx.midi_0 != 0)
+				{
+					switch ((midi_event_tx.midi_0 >> 4) & 0xF)
+					{
+						case 0x8:
+						case 0x9:
+						case 0xA:
+						case 0xB:
+						case 0xE:
+							midi_event_tx.midi_1 = read_byte;
+							flags.bytes = 2;
+							break;
+						case 0xC:
+						case 0xD:
+							midi_event_tx.midi_1 = read_byte;
+							midi_transmit(&midi_event_tx);
+							break;
+						case 0xF:
+							switch (midi_event_tx.midi_0)
+							{
+								case 0xF2:
+									midi_event_tx.midi_1 = read_byte;
+									flags.bytes = 2;
+									// can't clear the running status here like the flowchart says, because it is also the byte to be sent in the transmit once the 3rd byte is received.  It'll have to be cleared post-transmit
+									break;
+								case 0xF1:
+								case 0xF3:
+									midi_event_tx.midi_1 = read_byte;
+									midi_transmit(&midi_event_tx);
+									// fall through
+								default:
+									// Ignore?!?
+									midi_event_tx.midi_0 = 0;
+							}
+							break;
+						default: // should not be possible
+							break;
+					}
+				}
+			}
+		}
 		chopstx_mutex_unlock(&midi_tx_mut);
-#ifdef DEBUG
-		put_binary((const char *)&midi_event_tx, 4);
-#endif
 	}
 	return NULL;
 }
@@ -134,6 +241,7 @@ midi_rx_ready(uint8_t ep_num, uint16_t len)
 #else
 		usb_lld_rxcpy ((uint8_t*)&midi_event_rx, ep_num, i*4, 4);
 #endif
+		// TODO running status to reduce uart traffic
 		switch(midi_event_rx.cin)
 		{
 			case 0x0:
