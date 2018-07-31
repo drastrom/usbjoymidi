@@ -78,15 +78,20 @@ void hid_write(void)
 	// TODO: rate limit:
 	// if the hid_report has changed OR it has been more than
 	// hid_idle_rate * 4ms since the last report
+	// Looks like both Windows and Linux set idle to 0,
+	// so for now just suppress duplicate reports
+	if (hid_report.raw != hid_report_saved.raw)
+	{
 #ifdef GNU_LINUX_EMULATION
-	usb_lld_tx_enable_buf (ENDP1, &hid_report, sizeof(hid_report));
+		usb_lld_tx_enable_buf (ENDP1, &hid_report, sizeof(hid_report));
 #else
-	usb_lld_write (ENDP1, &hid_report, sizeof(hid_report));
+		usb_lld_write (ENDP1, &hid_report, sizeof(hid_report));
 #endif
-	// TODO should have a mutex/event to wait for tx done
-	hid_report_saved = hid_report;
+		// TODO should have a mutex/event to wait for tx done
+		hid_report_saved = hid_report;
 #if defined(DEBUG) && defined(REALLY_VERBOSE_DEBUG)
-	put_binary((const char *)&hid_report, sizeof(hid_report));
+		put_binary((const char *)&hid_report, sizeof(hid_report));
 #endif
+	}
 }
 
