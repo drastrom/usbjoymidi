@@ -60,7 +60,7 @@ int hid_data_setup(struct usb_dev *dev)
 		return usb_lld_ctrl_recv (dev, &hid_idle_rate, 1);
 
 	case USB_HID_REQ_GET_REPORT:
-		return usb_lld_ctrl_send (dev, &hid_report, 5);
+		return usb_lld_ctrl_send (dev, &hid_report, sizeof(hid_report));
 
 	case USB_HID_REQ_SET_REPORT:
 	case USB_HID_REQ_GET_PROTOCOL:
