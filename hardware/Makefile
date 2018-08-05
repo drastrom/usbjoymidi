@@ -1,9 +1,9 @@
 PARTFILES=\
 	  part.BluePillMerge_a126641d7fb79d6ad0f204e9abc523f4_5.fzp \
-	  svg.breadboard.BluePillMerge_a5738fec0b902e13f9b09d153d76f9e6_1_breadboard.svg \
-	  svg.icon.BluePillMerge_a5738fec0b902e13f9b09d153d76f9e6_1_icon.svg \
-	  svg.pcb.BluePillMerge_a5738fec0b902e13f9b09d153d76f9e6_1_pcb.svg \
-	  svg.schematic.BluePillMerge_a5738fec0b902e13f9b09d153d76f9e6_1_schematic.svg
+	  svg.breadboard.BluePillMerge_a9966dcd0ea15e21ad555ae4bf4af3e4_1_breadboard.svg \
+	  svg.icon.BluePillMerge_a9966dcd0ea15e21ad555ae4bf4af3e4_1_icon.svg \
+	  svg.pcb.BluePillMerge_a9966dcd0ea15e21ad555ae4bf4af3e4_1_pcb.svg \
+	  svg.schematic.BluePillMerge_a9966dcd0ea15e21ad555ae4bf4af3e4_1_schematic.svg
 
 .PHONY: all clean prepare
 
