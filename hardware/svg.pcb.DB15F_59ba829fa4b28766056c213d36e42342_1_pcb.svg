@@ -1,0 +1,115 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 49500 154566.94" height="39.260002mm" id="svg116" version="1.2" x="0in"  gorn="0" y="0in" width="12.573mm">
+    <desc >
+        <referenceFile >svg.pcb.DB15F.svg</referenceFile>
+    </desc>
+    <defs id="defs120" />
+    <title id="title2" >DB15F.fp</title>
+    <desc id="desc4" >Geda footprint file 'DB25F.fp' converted by Fritzing</desc>
+    <metadata id="metadata6" >
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+            <rdf:Description xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" rdf:about="">
+                <fz:attr name="geda filename" xmlns:fz="http://fritzing.org/gedametadata/1.0/">DB25F.fp</fz:attr>
+                <fz:attr name="fritzing version" xmlns:fz="http://fritzing.org/gedametadata/1.0/">0.4.0b.06.21.4282</fz:attr>
+                <fz:attr name="conversion date" xmlns:fz="http://fritzing.org/gedametadata/1.0/">27/06/2010 07:15:08</fz:attr>
+                <fz:comment xmlns:fz="http://fritzing.org/gedametadata/1.0/">Gehaeuse (schmaler Kasten incl. Bohrungen)</fz:comment>
+                <fz:comment xmlns:fz="http://fritzing.org/gedametadata/1.0/">Gehaeuse (aeusserer Kasten)</fz:comment>
+                <fz:comment xmlns:fz="http://fritzing.org/gedametadata/1.0/">This part of the connector normally hangs off the circuit board,</fz:comment>
+                <fz:comment xmlns:fz="http://fritzing.org/gedametadata/1.0/">so it is confusing to actually mark it on the silkscreen</fz:comment>
+                <fz:comment xmlns:fz="http://fritzing.org/gedametadata/1.0/">define(`X1', `eval(BASEX-PANEL_DISTANCE-260)')</fz:comment>
+                <fz:comment xmlns:fz="http://fritzing.org/gedametadata/1.0/">define(`Y1', `eval(PY1-100)')</fz:comment>
+                <fz:comment xmlns:fz="http://fritzing.org/gedametadata/1.0/">define(`X2', `eval(BASEX-PANEL_DISTANCE)')</fz:comment>
+                <fz:comment xmlns:fz="http://fritzing.org/gedametadata/1.0/">define(`Y2', `eval(PY2+100)')</fz:comment>
+                <fz:comment xmlns:fz="http://fritzing.org/gedametadata/1.0/">ElementLine(X1 Y1 X2 Y1 20)</fz:comment>
+                <fz:comment xmlns:fz="http://fritzing.org/gedametadata/1.0/">ElementLine(X2 Y1 X2 Y2 10)</fz:comment>
+                <fz:comment xmlns:fz="http://fritzing.org/gedametadata/1.0/">ElementLine(X2 Y2 X1 Y2 20)</fz:comment>
+                <fz:comment xmlns:fz="http://fritzing.org/gedametadata/1.0/">ElementLine(X1 Y2 X1 Y1 20)</fz:comment>
+                <fz:comment xmlns:fz="http://fritzing.org/gedametadata/1.0/">Gehaeuse (innerer Kasten)</fz:comment>
+                <fz:comment xmlns:fz="http://fritzing.org/gedametadata/1.0/">Pins</fz:comment>
+                <fz:comment xmlns:fz="http://fritzing.org/gedametadata/1.0/">Pin 1</fz:comment>
+                <fz:comment xmlns:fz="http://fritzing.org/gedametadata/1.0/">Plazierungsmarkierung == PIN 1</fz:comment>
+                <fz:comment xmlns:fz="http://fritzing.org/gedametadata/1.0/">Changed PY1 to PY2 13-Dec-1999 LRD</fz:comment>
+                <fz:comment xmlns:fz="http://fritzing.org/gedametadata/1.0/">Remainder of the first row</fz:comment>
+                <fz:comment xmlns:fz="http://fritzing.org/gedametadata/1.0/">Second row</fz:comment>
+                <fz:comment xmlns:fz="http://fritzing.org/gedametadata/1.0/">Befestigungsbohrung</fz:comment>
+                <fz:attr name="dist-license" xmlns:fz="http://fritzing.org/gedametadata/1.0/">GPL</fz:attr>
+                <fz:attr name="use-license" xmlns:fz="http://fritzing.org/gedametadata/1.0/">unlimited</fz:attr>
+                <fz:attr name="author" xmlns:fz="http://fritzing.org/gedametadata/1.0/">gEDA project</fz:attr>
+                <fz:attr name="license-url" xmlns:fz="http://fritzing.org/gedametadata/1.0/">http://www.gnu.org/licenses/gpl.html</fz:attr>
+            </rdf:Description>
+            <cc:Work xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" rdf:about="">
+                <dc:format xmlns:dc="http://purl.org/dc/elements/1.1/">image/svg+xml</dc:format>
+                <dc:type xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+                <dc:title xmlns:dc="http://purl.org/dc/elements/1.1/">DB15F.fp</dc:title>
+            </cc:Work>
+        </rdf:RDF>
+    </metadata>
+    <g transform="translate(-3.0517578e-5,-54033.063)" >
+        <g >
+            <g >
+                <g >
+                    <g id="silkscreen"  gorn="0.5.0.0.0.0">
+                        <line stroke-width="999.99987793" fill="none" y2="54533.07" id="line41"  x1="500" stroke="#ffffff" y1="54533.07" gorn="0.5.0.0.0.0.0" x2="3500"/>
+                        <line stroke-width="999.99987793" fill="none" y2="208100" id="line43"  x1="3500" stroke="#ffffff" y1="54533.07" gorn="0.5.0.0.0.0.1" x2="3500"/>
+                        <line stroke-width="999.99987793" fill="none" y2="208100" id="line45"  x1="3500" stroke="#ffffff" y1="208100" gorn="0.5.0.0.0.0.2" x2="500"/>
+                        <line stroke-width="999.99987793" fill="none" y2="54533.07" id="line47"  x1="500" stroke="#ffffff" y1="208100" gorn="0.5.0.0.0.0.3" x2="500"/>
+                        <line stroke-width="999.99987793" fill="none" y2="58971.422" id="line49"  x1="500" stroke="#ffffff" y1="58971.422" gorn="0.5.0.0.0.0.4" x2="3500"/>
+                        <line stroke-width="999.99987793" fill="none" y2="67848.117" id="line51"  x1="500" stroke="#ffffff" y1="67848.117" gorn="0.5.0.0.0.0.5" x2="3500"/>
+                        <line stroke-width="999.99987793" fill="none" y2="203661.64" id="line53"  x1="500" stroke="#ffffff" y1="203661.64" gorn="0.5.0.0.0.0.6" x2="3500"/>
+                        <line stroke-width="999.99987793" fill="none" y2="194784.94" id="line55"  x1="500" stroke="#ffffff" y1="194784.94" gorn="0.5.0.0.0.0.7" x2="3500"/>
+                        <line stroke-width="1999.99975586" fill="none" y2="71546.742" id="line57"  x1="3500" stroke="#ffffff" y1="71546.742" gorn="0.5.0.0.0.0.8" x2="14000"/>
+                        <line stroke-width="1999.99975586" fill="none" y2="191086.31" id="line59"  x1="14000" stroke="#ffffff" y1="71546.742" gorn="0.5.0.0.0.0.9" x2="14000"/>
+                        <line stroke-width="1999.99975586" fill="none" y2="191086.31" id="line61"  x1="14000" stroke="#ffffff" y1="191086.31" gorn="0.5.0.0.0.0.10" x2="3500"/>
+                        <line stroke-width="999.99987793" fill="none" y2="71546.742" id="line63"  x1="3500" stroke="#ffffff" y1="191086.31" gorn="0.5.0.0.0.0.11" x2="3500"/>
+                        <line stroke-width="2000" fill="none" y2="169100" id="line65"  x1="38600" stroke="#ffffff" y1="169100" gorn="0.5.0.0.0.0.12" x2="14000"/>
+                        <line stroke-width="2000" fill="none" y2="158300" id="line67"  x1="38600" stroke="#ffffff" y1="158300" gorn="0.5.0.0.0.0.13" x2="14000"/>
+                        <line stroke-width="2000" fill="none" y2="147500" id="line69"  x1="38600" stroke="#ffffff" y1="147500" gorn="0.5.0.0.0.0.14" x2="14000"/>
+                        <line stroke-width="2000" fill="none" y2="136700" id="line71"  x1="38600" stroke="#ffffff" y1="136700" gorn="0.5.0.0.0.0.15" x2="14000"/>
+                        <line stroke-width="2000" fill="none" y2="125900" id="line73"  x1="38600" stroke="#ffffff" y1="125900" gorn="0.5.0.0.0.0.16" x2="14000"/>
+                        <line stroke-width="2000" fill="none" y2="115100" id="line75"  x1="38600" stroke="#ffffff" y1="115100" gorn="0.5.0.0.0.0.17" x2="14000"/>
+                        <line stroke-width="2000" fill="none" y2="104300" id="line77"  x1="38600" stroke="#ffffff" y1="104300" gorn="0.5.0.0.0.0.18" x2="14000"/>
+                        <line stroke-width="2000" fill="none" y2="93500" id="line79"  x1="38600" stroke="#ffffff" y1="93500" gorn="0.5.0.0.0.0.19" x2="14000"/>
+                        <line stroke-width="2000" fill="none" y2="163700" id="line91"  x1="27400" stroke="#ffffff" y1="163700" gorn="0.5.0.0.0.0.20" x2="14000"/>
+                        <line stroke-width="2000" fill="none" y2="152900" id="line93"  x1="27400" stroke="#ffffff" y1="152900" gorn="0.5.0.0.0.0.21" x2="14000"/>
+                        <line stroke-width="2000" fill="none" y2="142100" id="line95"  x1="27400" stroke="#ffffff" y1="142100" gorn="0.5.0.0.0.0.22" x2="14000"/>
+                        <line stroke-width="2000" fill="none" y2="131300" id="line97"  x1="27400" stroke="#ffffff" y1="131300" gorn="0.5.0.0.0.0.23" x2="14000"/>
+                        <line stroke-width="2000" fill="none" y2="120500" id="line99"  x1="27400" stroke="#ffffff" y1="120500" gorn="0.5.0.0.0.0.24" x2="14000"/>
+                        <line stroke-width="2000" fill="none" y2="109700" id="line101"  x1="27400" stroke="#ffffff" y1="109700" gorn="0.5.0.0.0.0.25" x2="14000"/>
+                        <line stroke-width="2000" fill="none" y2="98900" id="line103"  x1="27400" stroke="#ffffff" y1="98900" gorn="0.5.0.0.0.0.26" x2="14000"/>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+    <g transform="translate(-3.0517578e-5,-54033.063)" >
+        <g >
+            <g >
+                <g >
+                    <g id="copper0"  gorn="0.6.0.0.0.0">
+                        <g id="copper1"  gorn="0.6.0.0.0.0.0">
+                            <circle cx="42600" stroke-width="1250" fill="none" cy="169100" id="connector0pin"  connectorname="1" stroke="#ff9400" r="2375" gorn="0.6.0.0.0.0.0.0"/>
+                            <circle cx="42600" stroke-width="1250" fill="none" cy="158300" id="connector1pin"  connectorname="2" stroke="#ff9400" r="2375" gorn="0.6.0.0.0.0.0.1"/>
+                            <circle cx="42600" stroke-width="1250" fill="none" cy="147500" id="connector2pin"  connectorname="3" stroke="#ff9400" r="2375" gorn="0.6.0.0.0.0.0.2"/>
+                            <circle cx="42600" stroke-width="1250" fill="none" cy="136700" id="connector3pin"  connectorname="4" stroke="#ff9400" r="2375" gorn="0.6.0.0.0.0.0.3"/>
+                            <circle cx="42600" stroke-width="1250" fill="none" cy="125900" id="connector4pin"  connectorname="5" stroke="#ff9400" r="2375" gorn="0.6.0.0.0.0.0.4"/>
+                            <circle cx="42600" stroke-width="1250" fill="none" cy="115100" id="connector5pin"  connectorname="6" stroke="#ff9400" r="2375" gorn="0.6.0.0.0.0.0.5"/>
+                            <circle cx="42600" stroke-width="1250" fill="none" cy="104300" id="connector6pin"  connectorname="7" stroke="#ff9400" r="2375" gorn="0.6.0.0.0.0.0.6"/>
+                            <circle cx="42600" stroke-width="1250" fill="none" cy="93500" id="connector7pin"  connectorname="8" stroke="#ff9400" r="2375" gorn="0.6.0.0.0.0.0.7"/>
+                            <circle cx="31400" stroke-width="1250" fill="none" cy="163700" id="connector8pin"  connectorname="14" stroke="#ff9400" r="2375" gorn="0.6.0.0.0.0.0.8"/>
+                            <circle cx="31400" stroke-width="1250" fill="none" cy="152900" id="connector9pin"  connectorname="15" stroke="#ff9400" r="2375" gorn="0.6.0.0.0.0.0.9"/>
+                            <circle cx="31400" stroke-width="1250" fill="none" cy="142100" id="connector10pin"  connectorname="16" stroke="#ff9400" r="2375" gorn="0.6.0.0.0.0.0.10"/>
+                            <circle cx="31400" stroke-width="1250" fill="none" cy="131300" id="connector11pin"  connectorname="17" stroke="#ff9400" r="2375" gorn="0.6.0.0.0.0.0.11"/>
+                            <circle cx="31400" stroke-width="1250" fill="none" cy="120500" id="connector12pin"  connectorname="18" stroke="#ff9400" r="2375" gorn="0.6.0.0.0.0.0.12"/>
+                            <circle cx="31400" stroke-width="1250" fill="none" cy="109700" id="connector13pin"  connectorname="19" stroke="#ff9400" r="2375" gorn="0.6.0.0.0.0.0.13"/>
+                            <circle cx="31400" stroke-width="1250" fill="none" cy="98900" id="connector14pin"  connectorname="20" stroke="#ff9400" r="2375" gorn="0.6.0.0.0.0.0.14"/>
+                            <circle cx="37000" stroke-width="6250" fill="none" cy="66533.062" id="circle33"  stroke="#ff9400" r="9375" gorn="0.6.0.0.0.0.0.15"/>
+                            <circle cx="37000" stroke-width="6250" fill="none" cy="196100" id="circle35"  stroke="#ff9400" r="9375" gorn="0.6.0.0.0.0.0.16"/>
+                            <circle cx="37000" stroke-width="0" fill="#000000" cy="66533.062" id="nonconn0"  stroke="#000000" r="6250" gorn="0.6.0.0.0.0.0.17"/>
+                            <circle cx="37000" stroke-width="0" fill="#000000" cy="196100" id="nonconn1"  stroke="#000000" r="6250" gorn="0.6.0.0.0.0.0.18"/>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
