@@ -11,6 +11,7 @@
 #include "usb_lld.h"
 #include "usb_conf.h"
 #include "usb_hid.h"
+#include "bitband.h"
 
 extern void _write (const char *s, int len);
 extern void led_blink(int);
@@ -68,26 +69,22 @@ static void TIM2_handler(void)
 	gpio = ~GPIOB->IDR;
 	if ((ccer & TIM_CCER_CC1E) && (sr & TIM_SR_CC1IF))
 	{
-		// TODO bit band
-		TIM2->CCER &= ~TIM_CCER_CC1E;
+		BITBAND_PERIPH(&TIM2->CCER)[0] = 0;
 		hid_report.button1 = (gpio >> 12) & 0x1;
 	}
 	if ((ccer & TIM_CCER_CC2E) && (sr & TIM_SR_CC2IF))
 	{
-		// TODO bit band
-		TIM2->CCER &= ~TIM_CCER_CC2E;
+		BITBAND_PERIPH(&TIM2->CCER)[4] = 0;
 		hid_report.button2 = (gpio >> 13) & 0x1;
 	}
 	if ((ccer & TIM_CCER_CC3E) && (sr & TIM_SR_CC3IF))
 	{
-		// TODO bit band
-		TIM2->CCER &= ~TIM_CCER_CC3E;
+		BITBAND_PERIPH(&TIM2->CCER)[8] = 0;
 		hid_report.button3 = (gpio >> 14) & 0x1;
 	}
 	if ((ccer & TIM_CCER_CC4E) && (sr & TIM_SR_CC4IF))
 	{
-		// TODO bit band
-		TIM2->CCER &= ~TIM_CCER_CC4E;
+		BITBAND_PERIPH(&TIM2->CCER)[12] = 0;
 		hid_report.button4 = (gpio >> 15) & 0x1;
 	}
 	hid_write();

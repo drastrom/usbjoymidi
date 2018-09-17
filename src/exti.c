@@ -10,6 +10,7 @@
 #include "usb_lld.h"
 #include "usb_conf.h"
 #include "usb_hid.h"
+#include "bitband.h"
 
 extern void _write (const char *s, int len);
 #ifdef DEBUG
@@ -30,26 +31,26 @@ static void EXTI15_10_handler(void)
 	if (pending & 0x1000)
 	{
 		TIM2->CCR1 = TIM2->CNT + 128;
-		// TODO: bit band
-		TIM2->CCER |= TIM_CCER_CC1E;
+		BITBAND_PERIPH(&TIM2->CCER)[0] = 1;
+		BITBAND_PERIPH(&TIM2->SR)[1] = 0;
 	}
 	if (pending & 0x2000)
 	{
 		TIM2->CCR2 = TIM2->CNT + 128;
-		// TODO: bit band
-		TIM2->CCER |= TIM_CCER_CC2E;
+		BITBAND_PERIPH(&TIM2->CCER)[4] = 1;
+		BITBAND_PERIPH(&TIM2->SR)[2] = 0;
 	}
 	if (pending & 0x4000)
 	{
 		TIM2->CCR3 = TIM2->CNT + 128;
-		// TODO: bit band
-		TIM2->CCER |= TIM_CCER_CC3E;
+		BITBAND_PERIPH(&TIM2->CCER)[8] = 1;
+		BITBAND_PERIPH(&TIM2->SR)[3] = 0;
 	}
 	if (pending & 0x8000)
 	{
 		TIM2->CCR4 = TIM2->CNT + 128;
-		// TODO: bit band
-		TIM2->CCER |= TIM_CCER_CC4E;
+		BITBAND_PERIPH(&TIM2->CCER)[12] = 1;
+		BITBAND_PERIPH(&TIM2->SR)[4] = 0;
 	}
 #ifdef DEBUG
 	_write("Button events: ", 15);
