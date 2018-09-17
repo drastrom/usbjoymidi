@@ -7,6 +7,13 @@ union hid_report {
     uint64_t W:15;
     uint64_t buttons:4;
   };
+  struct {
+    uint64_t notbuttons:60;
+    uint64_t button1:1;
+    uint64_t button2:1;
+    uint64_t button3:1;
+    uint64_t button4:1;
+  };
 };
 
 extern union hid_report hid_report;

@@ -59,9 +59,44 @@ static void DMA1_Channel7_handler(void)
 	}
 }
 
+static void TIM2_handler(void)
+{
+	uint32_t gpio;
+	uint16_t sr = TIM2->SR;
+	TIM2->SR &= ~(TIM_SR_CC1IF|TIM_SR_CC2IF|TIM_SR_CC3IF|TIM_SR_CC4IF);
+	gpio = ~GPIOB->IDR;
+	if (sr & TIM_SR_CC1IF)
+	{
+		// TODO bit band
+		TIM2->CCER &= ~TIM_CCER_CC1E;
+		hid_report.button1 = (gpio >> 12) & 0x1;
+	}
+	if (sr & TIM_SR_CC2IF)
+	{
+		// TODO bit band
+		TIM2->CCER &= ~TIM_CCER_CC2E;
+		hid_report.button2 = (gpio >> 13) & 0x1;
+	}
+	if (sr & TIM_SR_CC3IF)
+	{
+		// TODO bit band
+		TIM2->CCER &= ~TIM_CCER_CC3E;
+		hid_report.button3 = (gpio >> 14) & 0x1;
+	}
+	if (sr & TIM_SR_CC4IF)
+	{
+		// TODO bit band
+		TIM2->CCER &= ~TIM_CCER_CC4E;
+		hid_report.button4 = (gpio >> 15) & 0x1;
+	}
+	hid_write();
+}
+
 static chopstx_intr_t dma1_channel7_interrupt;
+static chopstx_intr_t tim2_interrupt;
 static struct chx_poll_head *const tim_poll[] = {
-  (struct chx_poll_head *const)&dma1_channel7_interrupt
+  (struct chx_poll_head *const)&dma1_channel7_interrupt,
+  (struct chx_poll_head *const)&tim2_interrupt
 };
 #define TIM_POLL_NUM (sizeof (tim_poll)/sizeof (struct chx_poll_head *))
 
@@ -74,6 +109,9 @@ tim_main (void *arg)
 	chopstx_usec_wait(250*1000);
 	led_blink(2);
 	chopstx_claim_irq (&dma1_channel7_interrupt, DMA1_CHANNEL7_IRQ);
+	chopstx_claim_irq (&tim2_interrupt, TIM2_IRQ);
+	TIM2->SR = 0;
+	TIM2->DIER = TIM_DIER_CC1IE|TIM_DIER_CC2IE|TIM_DIER_CC3IE|TIM_DIER_CC4IE;
 	TIM3->SR = 0;
 	TIM3->DIER = TIM_DIER_UDE|TIM_DIER_CC1DE;
 	TIM4->SR = 0;
@@ -83,6 +121,7 @@ tim_main (void *arg)
 	DMA1_Channel6->CCR |= DMA_CCR1_EN;
 	DMA1_Channel7->CCR |= DMA_CCR1_EN;
 	_write("Here\r\n",6);
+	TIM2->CR1 |= TIM_CR1_CEN;
 	TIM3->CR1 |= TIM_CR1_CEN;
 
 #if 0
@@ -100,6 +139,10 @@ tim_main (void *arg)
 		{
 			DMA1_Channel7_handler ();
 		}
+		if (tim2_interrupt.ready)
+		{
+			TIM2_handler ();
+		}
 	}
 #endif
 	return NULL;
@@ -110,9 +153,9 @@ static uint32_t gpio_start_val = (0xF << 6), gpio_reset_val = (0xF << (6+16));
 void
 timer_init(void)
 {
-	RCC->APB1RSTR = RCC_APB1RSTR_TIM3RST|RCC_APB1RSTR_TIM4RST;
+	RCC->APB1RSTR = RCC_APB1RSTR_TIM2RST|RCC_APB1RSTR_TIM3RST|RCC_APB1RSTR_TIM4RST;
 	RCC->APB1RSTR = 0;
-	RCC->APB1ENR |= RCC_APB1ENR_TIM3EN|RCC_APB1ENR_TIM4EN;
+	RCC->APB1ENR |= RCC_APB1ENR_TIM2EN|RCC_APB1ENR_TIM3EN|RCC_APB1ENR_TIM4EN;
 
 	RCC->APB2RSTR = RCC_APB2RSTR_IOPBRST;
 	RCC->APB2RSTR = 0;
@@ -165,6 +208,12 @@ timer_init(void)
 	TIM4->ARR = 0xFFFF; /* 1.8204166 ms */
 	/* Generate UEV to upload PSC and ARR */
 	TIM4->EGR = TIM_EGR_UG;
+
+	TIM2->CR1 = TIM_CR1_URS | TIM_CR1_ARPE;
+	TIM2->PSC = 5625 - 1; /* 12.8 kHz */
+	TIM2->ARR = 0xFFFF; /* 5.119921875 s */
+	/* Generate UEV to upload PSC and ARR */
+	TIM2->EGR = TIM_EGR_UG;
 
 	chopstx_create (PRIO_TIM, STACK_ADDR_TIM, STACK_SIZE_TIM, tim_main, NULL);
 }

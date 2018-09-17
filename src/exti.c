@@ -27,11 +27,30 @@ static void EXTI15_10_handler(void)
 {
 	uint32_t pending = EXTI->PR;
 	EXTI->PR = (pending & 0xF000);
-	// TODO: debounce?
-	// TODO: use GPIO state instead of toggling each trigger
-	// have seen where this leaves buttons in wrong state
-	hid_report.buttons ^= (uint8_t)((pending >> 12) & 0xF);
-	hid_write();
+	if (pending & 0x1000)
+	{
+		TIM2->CCR1 = TIM2->CNT + 128;
+		// TODO: bit band
+		TIM2->CCER |= TIM_CCER_CC1E;
+	}
+	if (pending & 0x2000)
+	{
+		TIM2->CCR2 = TIM2->CNT + 128;
+		// TODO: bit band
+		TIM2->CCER |= TIM_CCER_CC2E;
+	}
+	if (pending & 0x4000)
+	{
+		TIM2->CCR3 = TIM2->CNT + 128;
+		// TODO: bit band
+		TIM2->CCER |= TIM_CCER_CC3E;
+	}
+	if (pending & 0x8000)
+	{
+		TIM2->CCR4 = TIM2->CNT + 128;
+		// TODO: bit band
+		TIM2->CCER |= TIM_CCER_CC4E;
+	}
 #ifdef DEBUG
 	_write("Button events: ", 15);
 	put_byte((uint8_t)((pending >> 12) & 0xF));
