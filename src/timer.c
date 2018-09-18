@@ -63,27 +63,28 @@ static void TIM2_handler(void)
 {
 	uint32_t gpio;
 	uint16_t sr = TIM2->SR;
+	uint16_t ccer = TIM2->CCER;
 	TIM2->SR &= ~(TIM_SR_CC1IF|TIM_SR_CC2IF|TIM_SR_CC3IF|TIM_SR_CC4IF);
 	gpio = ~GPIOB->IDR;
-	if (sr & TIM_SR_CC1IF)
+	if ((ccer & TIM_CCER_CC1E) && (sr & TIM_SR_CC1IF))
 	{
 		// TODO bit band
 		TIM2->CCER &= ~TIM_CCER_CC1E;
 		hid_report.button1 = (gpio >> 12) & 0x1;
 	}
-	if (sr & TIM_SR_CC2IF)
+	if ((ccer & TIM_CCER_CC2E) && (sr & TIM_SR_CC2IF))
 	{
 		// TODO bit band
 		TIM2->CCER &= ~TIM_CCER_CC2E;
 		hid_report.button2 = (gpio >> 13) & 0x1;
 	}
-	if (sr & TIM_SR_CC3IF)
+	if ((ccer & TIM_CCER_CC3E) && (sr & TIM_SR_CC3IF))
 	{
 		// TODO bit band
 		TIM2->CCER &= ~TIM_CCER_CC3E;
 		hid_report.button3 = (gpio >> 14) & 0x1;
 	}
-	if (sr & TIM_SR_CC4IF)
+	if ((ccer & TIM_CCER_CC4E) && (sr & TIM_SR_CC4IF))
 	{
 		// TODO bit band
 		TIM2->CCER &= ~TIM_CCER_CC4E;
