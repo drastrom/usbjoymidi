@@ -52,11 +52,7 @@ static void DMA1_Channel7_handler(void)
 	if (DMA1->ISR & DMA_ISR_TCIF7)
 	{
 		DMA1->IFCR = DMA_ISR_TCIF7;
-		hid_report.X = timer4_capture.capture1 >> 1;
-		hid_report.Y = timer4_capture.capture2 >> 1;
-		hid_report.Z = timer4_capture.capture3 >> 1;
-		hid_report.W = timer4_capture.capture4 >> 1;
-		hid_write();
+		hid_update_axes(timer4_capture.capture1, timer4_capture.capture2, timer4_capture.capture3, timer4_capture.capture4);
 	}
 }
 
@@ -65,29 +61,36 @@ static void TIM2_handler(void)
 	uint32_t gpio;
 	uint16_t sr = TIM2->SR;
 	uint16_t ccer = TIM2->CCER;
+	union hid_buttons_update update = {0};
+
 	TIM2->SR &= ~(TIM_SR_CC1IF|TIM_SR_CC2IF|TIM_SR_CC3IF|TIM_SR_CC4IF);
 	gpio = ~GPIOB->IDR;
 	if ((ccer & TIM_CCER_CC1E) && (sr & TIM_SR_CC1IF))
 	{
 		BITBAND_PERIPH(&TIM2->CCER)[0] = 0;
-		hid_report.button1 = (gpio >> 12) & 0x1;
+		update.update1 = 1;
+		update.button1 = (gpio >> 12) & 0x1;
 	}
 	if ((ccer & TIM_CCER_CC2E) && (sr & TIM_SR_CC2IF))
 	{
 		BITBAND_PERIPH(&TIM2->CCER)[4] = 0;
-		hid_report.button2 = (gpio >> 13) & 0x1;
+		update.update2 = 1;
+		update.button2 = (gpio >> 13) & 0x1;
 	}
 	if ((ccer & TIM_CCER_CC3E) && (sr & TIM_SR_CC3IF))
 	{
 		BITBAND_PERIPH(&TIM2->CCER)[8] = 0;
-		hid_report.button3 = (gpio >> 14) & 0x1;
+		update.update3 = 1;
+		update.button3 = (gpio >> 14) & 0x1;
 	}
 	if ((ccer & TIM_CCER_CC4E) && (sr & TIM_SR_CC4IF))
 	{
 		BITBAND_PERIPH(&TIM2->CCER)[12] = 0;
-		hid_report.button4 = (gpio >> 15) & 0x1;
+		update.update4 = 1;
+		update.button4 = (gpio >> 15) & 0x1;
 	}
-	hid_write();
+	if (update.updates)
+		hid_update_buttons(update);
 }
 
 static chopstx_intr_t dma1_channel7_interrupt;

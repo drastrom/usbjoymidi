@@ -203,6 +203,7 @@ extern uint32_t bDeviceState;
 extern void timer_init(void);
 extern void exti_init(void);
 extern void midi_init(void);
+extern void hid_init(void);
 
 /*
  * Entry point.
@@ -319,6 +320,7 @@ main (int argc, const char *argv[])
   timer_init();
   exti_init();
   midi_init();
+  hid_init();
   eventflag_prepare_poll (&led_event, &led_event_poll_desc);
 
   while (1)

@@ -22,9 +22,12 @@ extern void put_binary (const char *, int);
 #define USB_HID_REQ_SET_IDLE     10
 #define USB_HID_REQ_SET_PROTOCOL 11
 
+static chopstx_mutex_t hid_tx_mut;
+static chopstx_cond_t  hid_tx_cond;
+
 static uint8_t hid_idle_rate;	/* in 4ms */
 static union hid_report hid_report_saved;
-union hid_report hid_report;
+static union hid_report hid_report;
 
 void hid_setup_endpoints(struct usb_dev *dev,
 				uint16_t interface, int stop)
@@ -48,6 +51,9 @@ void hid_tx_done(uint8_t ep_num, uint16_t len)
 {
 	(void)ep_num;
 	(void)len;
+	chopstx_mutex_lock (&hid_tx_mut);
+	chopstx_cond_signal (&hid_tx_cond);
+	chopstx_mutex_unlock (&hid_tx_mut);
 }
 
 int hid_data_setup(struct usb_dev *dev)
@@ -73,7 +79,7 @@ int hid_data_setup(struct usb_dev *dev)
 	}
 }
 
-void hid_write(void)
+static void hid_write(void)
 {
 	// TODO: rate limit:
 	// if the hid_report has changed OR it has been more than
@@ -87,7 +93,7 @@ void hid_write(void)
 #else
 		usb_lld_write (ENDP1, &hid_report, sizeof(hid_report));
 #endif
-		// TODO should have a mutex/event to wait for tx done
+		chopstx_cond_wait(&hid_tx_cond, &hid_tx_mut);
 		hid_report_saved = hid_report;
 #if defined(DEBUG) && defined(REALLY_VERBOSE_DEBUG)
 		put_binary((const char *)&hid_report, sizeof(hid_report));
@@ -95,3 +101,34 @@ void hid_write(void)
 	}
 }
 
+void hid_update_axes(uint16_t x, uint16_t y, uint16_t z, uint16_t w)
+{
+	chopstx_mutex_lock (&hid_tx_mut);
+	hid_report.X = x >> 1;
+	hid_report.Y = y >> 1;
+	hid_report.Z = z >> 1;
+	hid_report.W = w >> 1;
+	hid_write();
+	chopstx_mutex_unlock (&hid_tx_mut);
+}
+
+void hid_update_buttons(union hid_buttons_update update)
+{
+	chopstx_mutex_lock (&hid_tx_mut);
+	if (update.update1)
+		hid_report.button1 = update.button1;
+	if (update.update2)
+		hid_report.button2 = update.button2;
+	if (update.update3)
+		hid_report.button3 = update.button3;
+	if (update.update4)
+		hid_report.button4 = update.button4;
+	hid_write();
+	chopstx_mutex_unlock (&hid_tx_mut);
+}
+
+void hid_init(void)
+{
+	chopstx_mutex_init(&hid_tx_mut);
+	chopstx_cond_init(&hid_tx_cond);
+}

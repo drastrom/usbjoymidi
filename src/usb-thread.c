@@ -39,6 +39,7 @@ struct stdout stdout;
 #include "usb_conf.h"
 
 #include "usb_midi.h"
+#include "usb_hid.h"
 
 /* shit from gnuk.h */
 #define LED_FINISH_COMMAND	128
@@ -73,7 +74,11 @@ usb_rx_ready (uint8_t ep_num, uint16_t len)
 static void
 usb_tx_done (uint8_t ep_num, uint16_t len)
 {
-  if (ep_num == ENDP3)
+  if (ep_num == ENDP1)
+    {
+      hid_tx_done (ep_num, len);
+    }
+  else if (ep_num == ENDP3)
     {
       midi_tx_done (ep_num, len);
     }
