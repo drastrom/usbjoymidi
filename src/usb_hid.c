@@ -26,8 +26,19 @@ static chopstx_mutex_t hid_tx_mut;
 static chopstx_cond_t  hid_tx_cond;
 
 static uint8_t hid_idle_rate;	/* in 4ms */
-static union hid_report hid_report_saved;
-static union hid_report hid_report;
+static union hid_report {
+  uint64_t raw;
+  struct {
+    uint64_t X:15;
+    uint64_t Y:15;
+    uint64_t Z:15;
+    uint64_t W:15;
+    uint64_t button1:1;
+    uint64_t button2:1;
+    uint64_t button3:1;
+    uint64_t button4:1;
+  };
+} hid_report, hid_report_saved;
 
 void hid_setup_endpoints(struct usb_dev *dev,
 				uint16_t interface, int stop)
