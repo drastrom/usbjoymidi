@@ -59,11 +59,10 @@ static void DMA1_Channel7_handler(void)
 static void TIM2_handler(void)
 {
 	uint32_t gpio;
-	uint16_t sr = TIM2->SR;
+	uint16_t sr = __atomic_fetch_and(&TIM2->SR, ~(TIM_SR_CC1IF|TIM_SR_CC2IF|TIM_SR_CC3IF|TIM_SR_CC4IF), __ATOMIC_RELAXED);
 	uint16_t ccer = TIM2->CCER;
 	union hid_buttons_update update = {0};
 
-	TIM2->SR &= ~(TIM_SR_CC1IF|TIM_SR_CC2IF|TIM_SR_CC3IF|TIM_SR_CC4IF);
 	gpio = ~GPIOB->IDR;
 	if ((ccer & TIM_CCER_CC1E) && (sr & TIM_SR_CC1IF))
 	{
