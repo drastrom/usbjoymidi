@@ -63,31 +63,22 @@ static void TIM2_handler(void)
 	uint16_t ccer = TIM2->CCER;
 	union hid_buttons_update update = {0};
 
+	/* buttons are pulled-up, so gpio will be high on button up and low on
+	 * button down.  Complement the bits here so button down is 1 */
 	gpio = ~GPIOB->IDR;
-	if ((ccer & TIM_CCER_CC1E) && (sr & TIM_SR_CC1IF))
-	{
-		BITBAND_PERIPH(&TIM2->CCER)[0] = 0;
-		update.update1 = 1;
-		update.button1 = (gpio >> 12) & 0x1;
-	}
-	if ((ccer & TIM_CCER_CC2E) && (sr & TIM_SR_CC2IF))
-	{
-		BITBAND_PERIPH(&TIM2->CCER)[4] = 0;
-		update.update2 = 1;
-		update.button2 = (gpio >> 13) & 0x1;
-	}
-	if ((ccer & TIM_CCER_CC3E) && (sr & TIM_SR_CC3IF))
-	{
-		BITBAND_PERIPH(&TIM2->CCER)[8] = 0;
-		update.update3 = 1;
-		update.button3 = (gpio >> 14) & 0x1;
-	}
-	if ((ccer & TIM_CCER_CC4E) && (sr & TIM_SR_CC4IF))
-	{
-		BITBAND_PERIPH(&TIM2->CCER)[12] = 0;
-		update.update4 = 1;
-		update.button4 = (gpio >> 15) & 0x1;
-	}
+#define HANDLE_BUTTON(n) do { \
+	if ((ccer & TIM_CCER_CC##n##E) && (sr & TIM_SR_CC##n##IF)) \
+	{ \
+		BITBAND_PERIPH(&TIM2->CCER)[(n-1)*4] = 0; \
+		update.update##n = 1; \
+		update.button##n = (gpio >> (12+(n-1))) & 0x1; \
+	} \
+} while(0)
+	HANDLE_BUTTON(1);
+	HANDLE_BUTTON(2);
+	HANDLE_BUTTON(3);
+	HANDLE_BUTTON(4);
+#undef HANDLE_BUTTON
 	if (update.updates)
 		hid_update_buttons(update);
 }
