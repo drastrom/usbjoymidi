@@ -418,7 +418,10 @@ usart_main (void *arg)
       chopstx_poll (NULL, n, usart_poll);
 
       if (usart3_intr.ready)
+      {
 	usart3_tx_ready = handle_intr (USART3, &usart3_rb_h2a, &usart3_stat);
+	chopstx_intr_done(&usart3_intr);
+      }
 
       if (usart3_tx_ready && usart3_app_write_event.ready)
 	usart3_tx_ready = handle_tx_ready (USART3,

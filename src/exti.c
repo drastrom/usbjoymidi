@@ -81,6 +81,7 @@ exti_main (void *arg)
 		if (exti15_10_interrupt.ready)
 		{
 			EXTI15_10_handler ();
+			chopstx_intr_done(&exti15_10_interrupt);
 		}
 	}
 	return NULL;

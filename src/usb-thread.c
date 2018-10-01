@@ -105,6 +105,7 @@ extern int usb_get_status_interface (struct usb_dev *dev);
 
 extern int usb_get_descriptor (struct usb_dev *dev);
 
+static chopstx_intr_t interrupt;
 
 /*
  * Return 0 for normal USB event
@@ -118,6 +119,7 @@ usb_event_handle (struct usb_dev *dev)
   int e;
 
   e = usb_lld_event_handler (dev);
+  chopstx_intr_done(&interrupt);
   ep_num = USB_EVENT_ENDP (e);
 
   /* Transfer to endpoint (not control endpoint) */
@@ -215,8 +217,6 @@ usb_event_handle (struct usb_dev *dev)
   return 0;
 }
 
-
-static chopstx_intr_t interrupt;
 static struct chx_poll_head *const usb_poll[] = {
   (struct chx_poll_head *const)&interrupt
 };

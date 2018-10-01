@@ -129,10 +129,12 @@ tim_main (void *arg)
 		if (dma1_channel7_interrupt.ready)
 		{
 			DMA1_Channel7_handler ();
+			chopstx_intr_done(&dma1_channel7_interrupt);
 		}
 		if (tim2_interrupt.ready)
 		{
 			TIM2_handler ();
+			chopstx_intr_done(&tim2_interrupt);
 		}
 	}
 #endif
