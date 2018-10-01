@@ -31,6 +31,10 @@
 #include <chopstx.h>
 #include "stm32f103_local.h"
 #include "usart.h"
+#include "config.h"
+
+void put_byte_with_no_nl(uint8_t);
+extern void _write (const char *s, int len);
 
 static struct USART *
 get_usart_dev (uint8_t dev_no)
@@ -371,6 +375,9 @@ static int
 handle_tx_ready (struct USART *USARTx, struct rb *rb2h,
 		 struct usart_stat *stat)
 {
+#ifdef DEBUG
+  static int n = 0;
+#endif
   int tx_ready = 1;
   int c = rb_ll_get (rb2h);
 
@@ -378,6 +385,11 @@ handle_tx_ready (struct USART *USARTx, struct rb *rb2h,
     {
       uint32_t r;
 
+#ifdef DEBUG
+      put_byte_with_no_nl((c & 0xff));
+      if (((++n) & 0xf) == 0)
+	      _write("\r\n", 2);
+#endif
       USARTx->DR = (c & 0xff);
       stat->tx++;
       r = USARTx->SR;
