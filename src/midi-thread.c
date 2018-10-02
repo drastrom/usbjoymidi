@@ -267,10 +267,7 @@ midi_rx_ready(uint8_t ep_num, uint16_t len)
 				// don't really want to deal with running status for 0xf pass-through
 				// so clear running status, unless real-time
 				if (midi_event_rx.midi_0 < 0xF8)
-				{
-			case 0x5:
-					rx_running_status = 0;
-				}
+			case 0x5:	rx_running_status = 0;
 
 				bytes = 1;
 				break;
@@ -281,11 +278,11 @@ midi_rx_ready(uint8_t ep_num, uint16_t len)
 				break;
 			case 0xc:
 			case 0xd:
-				bytes = 2;
 				if (rx_running_status == midi_event_rx.midi_0)
 					offset = 1;
 				else
 					rx_running_status = midi_event_rx.midi_0;
+				bytes = 2;
 				break;
 			case 0x3:
 			case 0x4:
@@ -298,11 +295,11 @@ midi_rx_ready(uint8_t ep_num, uint16_t len)
 			case 0xa:
 			case 0xb:
 			case 0xe:
-				bytes = 3;
 				if (rx_running_status == midi_event_rx.midi_0)
 					offset = 1;
 				else
 					rx_running_status = midi_event_rx.midi_0;
+				bytes = 3;
 				break;
 		}
 		if (bytes != 0)
