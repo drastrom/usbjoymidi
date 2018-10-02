@@ -263,35 +263,36 @@ midi_rx_ready(uint8_t ep_num, uint16_t len)
 				// Reserved for future expansion.
 				bytes = 0;
 				break;
-			case 0x5:
 			case 0xf:
 				// don't really want to deal with running status for 0xf pass-through
 				// so clear running status, unless real-time
 				if (midi_event_rx.midi_0 < 0xF8)
+				{
+			case 0x5:
 					rx_running_status = 0;
+				}
 
 				bytes = 1;
 				break;
 			case 0x2:
 			case 0x6:
 				rx_running_status = 0;
+				bytes = 2;
+				break;
 			case 0xc:
 			case 0xd:
 				bytes = 2;
 				if (rx_running_status == midi_event_rx.midi_0)
-				{
 					offset = 1;
-					--bytes;
-				}
 				else
-				{
 					rx_running_status = midi_event_rx.midi_0;
-				}
 				break;
 			case 0x3:
 			case 0x4:
 			case 0x7:
 				rx_running_status = 0;
+				bytes = 3;
+				break;
 			case 0x8:
 			case 0x9:
 			case 0xa:
@@ -299,18 +300,13 @@ midi_rx_ready(uint8_t ep_num, uint16_t len)
 			case 0xe:
 				bytes = 3;
 				if (rx_running_status == midi_event_rx.midi_0)
-				{
 					offset = 1;
-					--bytes;
-				}
 				else
-				{
 					rx_running_status = midi_event_rx.midi_0;
-				}
 				break;
 		}
 		if (bytes != 0)
-			usart_write(3, (char *)&midi_event_rx.midi_0 + offset, bytes);
+			usart_write(3, (char *)&midi_event_rx.midi_0 + offset, bytes - offset);
 	}
 	if (i*4 < len)
 	{
