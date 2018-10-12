@@ -1,7 +1,7 @@
 # Makefile for Gnuk
 
 # Define project name here
-PROJECT = usbmidijoy
+PROJECT = usbjoymidi
 
 CHOPSTX = ../chopstx
 

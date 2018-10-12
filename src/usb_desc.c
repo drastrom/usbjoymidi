@@ -320,7 +320,7 @@ static const uint8_t config_desc[] = {
 
 
 /* USB String Descriptors */
-static const uint8_t usbmidijoy_string_lang_id[] = {
+static const uint8_t usbjoymidi_string_lang_id[] = {
   4,				/* bLength */
   STRING_DESCRIPTOR,
   0x09, 0x04			/* LangID = 0x0409: US-English */
@@ -336,12 +336,12 @@ struct desc
 };
 
 static const struct desc string_descriptors[] = {
-  {usbmidijoy_string_lang_id, sizeof (usbmidijoy_string_lang_id)},
-  {usbmidijoy_string_vendor, sizeof (usbmidijoy_string_vendor)},
-  {usbmidijoy_string_product, sizeof (usbmidijoy_string_product)},
-  {usbmidijoy_string_serial, sizeof (usbmidijoy_string_serial)},
-  {usbmidijoy_revision_detail, sizeof (usbmidijoy_revision_detail)},
-  {usbmidijoy_config_options, sizeof (usbmidijoy_config_options)},
+  {usbjoymidi_string_lang_id, sizeof (usbjoymidi_string_lang_id)},
+  {usbjoymidi_string_vendor, sizeof (usbjoymidi_string_vendor)},
+  {usbjoymidi_string_product, sizeof (usbjoymidi_string_product)},
+  {usbjoymidi_string_serial, sizeof (usbjoymidi_string_serial)},
+  {usbjoymidi_revision_detail, sizeof (usbjoymidi_revision_detail)},
+  {usbjoymidi_config_options, sizeof (usbjoymidi_config_options)},
   {sys_version, sizeof (sys_version)},
 };
 #define NUM_STRING_DESC (sizeof (string_descriptors) / sizeof (struct desc))

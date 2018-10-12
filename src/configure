@@ -192,7 +192,7 @@ if test "$target" = "GNU_LINUX"; then
   enable_hexoutput=""
   libs="-lpthread"
 else
-  ldscript="usbmidijoy.ld"
+  ldscript="usbjoymidi.ld"
   chip="stm32f103"
   emulation=""
   cross="arm-none-eabi-"
@@ -328,7 +328,7 @@ if !(IFS="	"
   while read -r VIDPID VERSION PRODUCT VENDOR; do
     if test "$vidpid" = "$VIDPID"; then
       output_vid_pid_version > usb-vid-pid-ver.c.inc
-      output_vendor_product_serial_strings usbmidijoy_ >usb-strings.c.inc
+      output_vendor_product_serial_strings usbjoymidi_ >usb-strings.c.inc
       exit 0
     fi
   done; exit 1) < ../USB_DEVICE_ID
@@ -369,7 +369,7 @@ fi
 sed -e "s/@ORIGIN@/$ORIGIN/" -e "s/@FLASH_SIZE@/$FLASH_SIZE/" \
     -e "s/@MEMORY_SIZE@/$MEMORY_SIZE/" \
     -e "s/@FLASH_PAGE_SIZE@/$FLASH_PAGE_SIZE/" \
-	< usbmidijoy.ld.in > usbmidijoy.ld
+	< usbjoymidi.ld.in > usbjoymidi.ld
 
 sed -e "s/@DEBUG_DEFINE@/$DEBUG_DEFINE/" \
     -e "s/@DFU_DEFINE@/$DFU_DEFINE/" \

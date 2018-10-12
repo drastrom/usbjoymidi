@@ -4,7 +4,7 @@
 src/.dep
 src/config.mk
 src/config.h
-src/usbmidijoy.ld
+src/usbjoymidi.ld
 src/board.h
 src/build/*
 src/*.inc
