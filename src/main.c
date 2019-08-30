@@ -204,6 +204,9 @@ extern void timer_init(void);
 extern void exti_init(void);
 extern void midi_init(void);
 extern void hid_init(void);
+#ifdef DEBUG
+extern void stdout_init(void);
+#endif
 
 /*
  * Entry point.
@@ -377,7 +380,7 @@ main (int argc, const char *argv[])
     void (*func) (void (*)(void)) = (void (*)(void (*)(void)))new_vector[9];
     uint32_t flash_page_size = 1024; /* 1KiB default */
 
-   if ((*CHIP_ID_REG)&0x07 == 0x04) /* High dencity device.  */
+   if (((*CHIP_ID_REG)&0x07) == 0x04) /* High dencity device.  */
      flash_page_size = 2048; /* It's 2KiB. */
 
     /* Kill DFU */
