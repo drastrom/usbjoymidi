@@ -74,7 +74,8 @@ int hid_data_setup(struct usb_dev *dev)
 	case USB_HID_REQ_GET_IDLE:
 		return usb_lld_ctrl_send (dev, &hid_idle_rate, 1);
 	case USB_HID_REQ_SET_IDLE:
-		return usb_lld_ctrl_recv (dev, &hid_idle_rate, 1);
+		hid_idle_rate = (dev->dev_req.value >> 8) & 0xFF;
+		return usb_lld_ctrl_ack (dev);
 
 	case USB_HID_REQ_GET_REPORT:
 		return usb_lld_ctrl_send (dev, &hid_report, sizeof(hid_report));
