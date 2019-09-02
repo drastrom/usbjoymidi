@@ -78,7 +78,13 @@ int hid_data_setup(struct usb_dev *dev)
 		return usb_lld_ctrl_ack (dev);
 
 	case USB_HID_REQ_GET_REPORT:
-		return usb_lld_ctrl_send (dev, &hid_report, sizeof(hid_report));
+		{
+			int ret;
+			chopstx_mutex_lock(&hid_tx_mut);
+			ret = usb_lld_ctrl_send (dev, &hid_report, sizeof(hid_report));
+			chopstx_mutex_unlock(&hid_tx_mut);
+			return ret;
+		}
 
 	case USB_HID_REQ_SET_REPORT:
 	case USB_HID_REQ_GET_PROTOCOL:
