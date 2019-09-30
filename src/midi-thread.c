@@ -334,4 +334,5 @@ midi_init(void)
 
 	usart_init(PRIO_USART, STACK_ADDR_USART, STACK_SIZE_USART, my_callback);
 	chopstx_create (PRIO_MIDI, STACK_ADDR_MIDI, STACK_SIZE_MIDI, midi_main, NULL);
+	usart_config(3, 0);
 }

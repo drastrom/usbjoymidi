@@ -1,8 +1,3 @@
-/* USB: SET_CONTROL_LINE_STATE
-   DTR RTS */
-/* USB: SERIAL_STATE
-   DSR DCD RI */
-
 struct usart_stat {
   uint8_t dev_no;
 
@@ -24,3 +19,12 @@ int usart_read (uint8_t dev_no, char *buf, uint16_t buflen);
 int usart_write (uint8_t dev_no, char *buf, uint16_t buflen);
 const struct usart_stat *usart_stat (uint8_t dev_no);
 int usart_send_break (uint8_t dev_no);
+void usart_config_clken (uint8_t dev_no, int on);
+
+void usart_read_prepare_poll (uint8_t dev_no, chopstx_poll_cond_t *poll_desc);
+int usart_read_ext (uint8_t dev_no, char *buf, uint16_t buflen, uint32_t *timeout_p);
+
+void usart_init0 (int (*cb) (uint8_t dev_no, uint16_t notify_bits));
+int usart_block_sendrecv (uint8_t dev_no, const char *s_buf, uint16_t s_buflen,
+			  char *r_buf, uint16_t r_buflen,
+			  uint32_t *timeout_block_p, uint32_t timeout_char);
