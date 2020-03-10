@@ -13,7 +13,6 @@
 #include "usb_midi.h"
 
 static chopstx_mutex_t midi_tx_mut;
-static chopstx_cond_t  midi_tx_cond;
 
 extern void _write (const char *s, int len);
 #ifdef DEBUG
@@ -42,7 +41,6 @@ midi_transmit(union midi_event * tx_event)
 #else
 	usb_lld_write (ENDP3, tx_event, 4);
 #endif
-	chopstx_cond_wait(&midi_tx_cond, &midi_tx_mut);
 #ifdef DEBUG
 	put_binary((const char *)tx_event, 4);
 #endif
@@ -318,9 +316,6 @@ midi_tx_done(uint8_t ep_num, uint16_t len)
 {
 	(void)ep_num;
 	(void)len;
-	chopstx_mutex_lock (&midi_tx_mut);
-	chopstx_cond_signal (&midi_tx_cond);
-	chopstx_mutex_unlock (&midi_tx_mut);
 }
 
 void
@@ -330,7 +325,6 @@ midi_init(void)
 	GPIOB->CRH = (GPIOB->CRH & ~0x0000FF00) | 0x00004A00;
 
 	chopstx_mutex_init(&midi_tx_mut);
-	chopstx_cond_init(&midi_tx_cond);
 
 	usart_init(PRIO_USART, STACK_ADDR_USART, STACK_SIZE_USART, my_callback);
 	chopstx_create (PRIO_MIDI, STACK_ADDR_MIDI, STACK_SIZE_MIDI, midi_main, NULL);

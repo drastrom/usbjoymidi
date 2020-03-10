@@ -23,7 +23,6 @@ extern void put_binary (const char *, int);
 #define USB_HID_REQ_SET_PROTOCOL 11
 
 static chopstx_mutex_t hid_tx_mut;
-static chopstx_cond_t  hid_tx_cond;
 
 static uint8_t hid_idle_rate;	/* in 4ms */
 static union hid_report {
@@ -62,9 +61,6 @@ void hid_tx_done(uint8_t ep_num, uint16_t len)
 {
 	(void)ep_num;
 	(void)len;
-	chopstx_mutex_lock (&hid_tx_mut);
-	chopstx_cond_signal (&hid_tx_cond);
-	chopstx_mutex_unlock (&hid_tx_mut);
 }
 
 int hid_data_setup(struct usb_dev *dev)
@@ -111,7 +107,6 @@ static void hid_write(void)
 #else
 		usb_lld_write (ENDP1, &hid_report, sizeof(hid_report));
 #endif
-		chopstx_cond_wait(&hid_tx_cond, &hid_tx_mut);
 		hid_report_saved = hid_report;
 #if defined(DEBUG) && defined(REALLY_VERBOSE_DEBUG)
 		put_binary((const char *)&hid_report, sizeof(hid_report));
@@ -148,5 +143,4 @@ void hid_update_buttons(union hid_buttons_update update)
 void hid_init(void)
 {
 	chopstx_mutex_init(&hid_tx_mut);
-	chopstx_cond_init(&hid_tx_cond);
 }
