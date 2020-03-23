@@ -183,7 +183,7 @@ timer_init(void)
 	TIM3->SMCR = 0;
 	/* slow this puppy down */
 	TIM3->PSC = 36000 - 1; /* 2 kHz */
-	TIM3->ARR = 20; /* 10ms */
+	TIM3->ARR = 10; /* 5ms */
 	/* set up output compare to reset gpio */
 	TIM3->CCMR1 = 0;
 	TIM3->CCR1 = 5; /* 2.5ms */

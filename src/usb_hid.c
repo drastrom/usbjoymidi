@@ -114,14 +114,33 @@ static void hid_write(void)
 	}
 }
 
+#define AVG_EXP 1
+struct running_avg
+{
+	uint32_t sum;
+	uint16_t buf[1<<AVG_EXP];
+} xavg, yavg, zavg, wavg;
+
 void hid_update_axes(uint16_t x, uint16_t y, uint16_t z, uint16_t w)
 {
+	static uint8_t num = 0;
 	chopstx_mutex_lock (&hid_tx_mut);
-	hid_report.X = x >> 1;
-	hid_report.Y = y >> 1;
-	hid_report.Z = z >> 1;
-	hid_report.W = w >> 1;
-	hid_write();
+	xavg.sum = xavg.sum - xavg.buf[num] + x;
+	xavg.buf[num] = x;
+	yavg.sum = yavg.sum - yavg.buf[num] + y;
+	yavg.buf[num] = y;
+	zavg.sum = zavg.sum - zavg.buf[num] + z;
+	zavg.buf[num] = z;
+	wavg.sum = wavg.sum - wavg.buf[num] + w;
+	wavg.buf[num] = w;
+	num++;
+	num &= (1<<AVG_EXP)-1;
+	hid_report.X = xavg.sum >> (AVG_EXP+1);
+	hid_report.Y = yavg.sum >> (AVG_EXP+1);
+	hid_report.Z = zavg.sum >> (AVG_EXP+1);
+	hid_report.W = wavg.sum >> (AVG_EXP+1);
+	if ((num&1)==0)
+		hid_write();
 	chopstx_mutex_unlock (&hid_tx_mut);
 }
 
